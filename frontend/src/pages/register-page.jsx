@@ -1,0 +1,2 @@
+import { Link } from 'react-router';
+export function RegisterPage() { return <section className="auth-layout"><article className="auth-card"><span className="eyebrow">Client Management Portal</span><h1>Create your workspace</h1><p>The registration form will be added in Prompt 18.</p><nav className="auth-links" aria-label="Authentication"><Link to="/login">Already have an account? Sign in</Link></nav></article></section>; }

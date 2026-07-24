@@ -1,0 +1,3 @@
+import { useAuth } from '../features/auth/use-auth.js';
+export function AdminHomePage() { const { user, organization, logout } = useAuth(); return <Dashboard title="Organization Admin" user={user} organization={organization} logout={logout} />; }
+function Dashboard({ title, user, organization, logout }) { return <section className="dashboard-shell"><article className="dashboard-card"><span className="eyebrow">Client Management Portal</span><h1>{title}</h1><p>Welcome{user?.firstName ? `, ${user.firstName}` : ''}. {organization?.name ? `You are viewing ${organization.name}.` : ''}</p><button type="button" onClick={logout}>Log out</button></article></section>; }

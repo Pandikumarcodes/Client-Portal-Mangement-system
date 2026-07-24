@@ -1,0 +1,2 @@
+import { useAuth } from '../features/auth/use-auth.js';
+export function SuperAdminHomePage() { const { user, logout } = useAuth(); return <section className="dashboard-shell"><article className="dashboard-card"><span className="eyebrow">Client Management Portal</span><h1>Super Admin console</h1><p>Welcome{user?.firstName ? `, ${user.firstName}` : ''}. Platform administration is ready for a future prompt.</p><button type="button" onClick={logout}>Log out</button></article></section>; }

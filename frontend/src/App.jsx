@@ -1,0 +1,38 @@
+import { Navigate, Outlet, Route, Routes, Link } from 'react-router';
+import { USER_ROLE } from './features/auth/auth.constants.js';
+import { ProtectedRoute } from './features/auth/protected-route.jsx';
+import { RoleRoute } from './features/auth/role-route.jsx';
+import { getRoleHome } from './features/auth/get-role-home.js';
+import { useAuth } from './features/auth/use-auth.js';
+import { LoginPage } from './pages/login-page.jsx';
+import { RegisterPage } from './pages/register-page.jsx';
+import { AdminHomePage } from './pages/admin-home-page.jsx';
+import { ClientHomePage } from './pages/client-home-page.jsx';
+import { SuperAdminHomePage } from './pages/super-admin-home-page.jsx';
+import { NotFoundPage } from './pages/not-found-page.jsx';
+
+function PublicRoute() {
+  const { status, user } = useAuth();
+  if (status === 'loading') return <div className="loading-screen" role="status">Restoring your session…</div>;
+  return status === 'authenticated' ? <Navigate to={getRoleHome(user?.role)} replace /> : <Outlet />;
+}
+
+export default function App() {
+  return <main className="app-shell"><header className="app-header"><Link className="brand" to="/">Client Portal</Link></header><Routes>
+    <Route path="/login" element={<PublicRoute />}><Route index element={<LoginPage />} /></Route>
+    <Route path="/register" element={<PublicRoute />}><Route index element={<RegisterPage />} /></Route>
+    <Route element={<ProtectedRoute />}>
+      <Route element={<RoleRoute allowedRoles={[USER_ROLE.ORGANIZATION_ADMIN]} />}><Route path="/admin" element={<AdminHomePage />} /></Route>
+      <Route element={<RoleRoute allowedRoles={[USER_ROLE.CLIENT]} />}><Route path="/client" element={<ClientHomePage />} /></Route>
+      <Route element={<RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]} />}><Route path="/super-admin" element={<SuperAdminHomePage />} /></Route>
+    </Route>
+    <Route path="/" element={<RootRedirect />} />
+    <Route path="*" element={<NotFoundPage />} />
+  </Routes></main>;
+}
+
+function RootRedirect() {
+  const { status, user } = useAuth();
+  if (status === 'loading') return <div className="loading-screen" role="status">Restoring your session…</div>;
+  return <Navigate to={status === 'authenticated' ? getRoleHome(user?.role) : '/login'} replace />;
+}
