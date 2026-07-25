@@ -22,9 +22,17 @@ const milestoneApi = vi.hoisted(() => ({
   createMilestone: vi.fn(),
   updateMilestone: vi.fn(),
 }));
+const projectFileApi = vi.hoisted(() => ({
+  listProjectFiles: vi.fn(),
+  getProjectFile: vi.fn(),
+  uploadProjectFile: vi.fn(),
+  updateProjectFile: vi.fn(),
+  downloadProjectFile: vi.fn(),
+}));
 vi.mock('./features/clients/client-api.js', () => clientApi);
 vi.mock('./features/projects/project-api.js', () => projectApi);
 vi.mock('./features/milestones/milestone-api.js', () => milestoneApi);
+vi.mock('./features/project-files/project-file-api.js', () => projectFileApi);
 import App from './App.jsx';
 
 const client = {
@@ -53,6 +61,17 @@ const milestone = {
   description: null,
   dueDate: null,
   status: 'pending',
+  createdAt: '2026-07-02T00:00:00.000Z',
+  updatedAt: '2026-07-02T00:00:00.000Z',
+};
+const projectFile = {
+  id: 'file-1',
+  projectId: 'project-1',
+  originalName: 'proposal.pdf',
+  mimeType: 'application/pdf',
+  sizeBytes: 120,
+  description: null,
+  status: 'active',
   createdAt: '2026-07-02T00:00:00.000Z',
   updatedAt: '2026-07-02T00:00:00.000Z',
 };
@@ -94,6 +113,15 @@ beforeEach(() => {
   milestoneApi.getMilestone.mockResolvedValue(milestone);
   milestoneApi.createMilestone.mockResolvedValue(milestone);
   milestoneApi.updateMilestone.mockResolvedValue(milestone);
+  Object.values(projectFileApi).forEach((mock) => mock.mockReset());
+  projectFileApi.listProjectFiles.mockResolvedValue({
+    files: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
+  projectFileApi.getProjectFile.mockResolvedValue(projectFile);
+  projectFileApi.uploadProjectFile.mockResolvedValue(projectFile);
+  projectFileApi.updateProjectFile.mockResolvedValue(projectFile);
+  projectFileApi.downloadProjectFile.mockResolvedValue('proposal.pdf');
 });
 
 describe('application Project routes and navigation', () => {
@@ -179,6 +207,54 @@ describe('application Project routes and navigation', () => {
   it('uses the not-found page for unknown nested Milestone routes', async () => {
     renderRoute(
       '/projects/project-1/milestones/milestone-1/unknown',
+      USER_ROLE.ORGANIZATION_ADMIN,
+    );
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
+
+  it.each([
+    ['/projects/project-1/files/new', 'Upload File'],
+    ['/projects/project-1/files/file-1', 'proposal.pdf'],
+    ['/projects/project-1/files/file-1/edit', 'Edit file metadata'],
+  ])('allows Organization Admin access to %s', async (path, heading) => {
+    renderRoute(path, USER_ROLE.ORGANIZATION_ADMIN);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+    });
+  });
+
+  it.each([USER_ROLE.CLIENT, USER_ROLE.SUPER_ADMIN])(
+    'redirects %s users away from tenant Project File routes',
+    async (role) => {
+      renderRoute('/projects/project-1/files/new', role);
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
+    },
+  );
+
+  it('redirects unauthenticated users away from Project File routes', async () => {
+    renderRoute('/projects/project-1/files/file-1', null, 'unauthenticated');
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+  });
+
+  it('adds no top-level Files navigation and preserves Project and Client navigation', () => {
+    renderRoute('/admin', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(screen.queryByRole('link', { name: 'Files' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Clients' })).toBeInTheDocument();
+  });
+
+  it('does not interpret files/new as a file ID and uses not-found for unknown file routes', async () => {
+    renderRoute('/projects/project-1/files/new', USER_ROLE.ORGANIZATION_ADMIN);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Upload File' })).toBeInTheDocument();
+    });
+    expect(projectFileApi.getProjectFile).not.toHaveBeenCalled();
+  });
+
+  it('uses the existing not-found page for unknown nested Project File routes', async () => {
+    renderRoute(
+      '/projects/project-1/files/file-1/unknown',
       USER_ROLE.ORGANIZATION_ADMIN,
     );
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();

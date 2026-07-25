@@ -63,6 +63,36 @@ tokens, refresh behavior, and safe error responses. They never send `tenantId` o
 deletion is unavailable. Tasks, assignments, comments, files, reminders, progress, invoices, and
 Client-user Milestone access are not implemented.
 
+Organization Admin Project Files are integrated into `/projects/:projectId`. The Project detail
+screen lists Project deliverables with an Active, Archived, or All statuses filter and backend
+pagination of 20 records per page. Files are reached only through a Project; no top-level Files
+navigation item is provided. The nested routes are:
+
+- `/projects/:projectId/files/new` — upload one file
+- `/projects/:projectId/files/:fileId` — view safe file metadata and download
+- `/projects/:projectId/files/:fileId/edit` — edit description and active/archived status
+
+All File routes require an authenticated Organization Admin. Client and Super Admin users cannot
+access them. Uploads reuse `VITE_API_BASE_URL` and the authenticated request utility, use a
+multipart field named `file`, accept exactly one file per request, and allow an optional
+500-character description. The browser supplies the multipart boundary. The frontend does not
+manually set multipart `Content-Type`.
+
+The upload size limit is 10 MiB. Accepted browser-reported MIME values are PDF, PNG, JPEG, plain
+text, CSV, Word Open XML, and Excel Open XML. Frontend checks are usability validation only; the
+backend remains authoritative. File status is `active` or `archived`. Archiving updates metadata
+without deleting content, and archived files remain downloadable and can be restored to active.
+
+Downloads use authenticated fetch rather than a public API link. A successful binary response is
+read as a Blob, attached to a temporary object URL with a sanitized download filename, and then the
+temporary anchor is removed and the object URL is revoked. Project File metadata, File objects,
+Blobs, and object URLs are not persisted in browser storage. `tenantId`, generated stored names,
+storage paths, and other storage internals are neither requested for display nor exposed in the
+interface.
+
+Public and signed links, deletion, file replacement, versioning, previews, thumbnails, Client-user
+access, direct storage uploads, and cloud SDKs are not implemented.
+
 Deactivation is not deletion: inactive Client profiles remain stored and can be reactivated. The
 backend enforces tenant ownership from the authenticated session, and the frontend never sends
 `tenantId`. Creating a Client profile does not create a portal User account. Client invitations,

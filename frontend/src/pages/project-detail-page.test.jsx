@@ -7,11 +7,16 @@ const api = vi.hoisted(() => ({
   listClients: vi.fn(),
   getProject: vi.fn(),
   listMilestones: vi.fn(),
+  listProjectFiles: vi.fn(),
 }));
 vi.mock('../features/clients/client-api.js', () => ({ listClients: api.listClients }));
 vi.mock('../features/projects/project-api.js', () => ({ getProject: api.getProject }));
 vi.mock('../features/milestones/milestone-api.js', () => ({
   listMilestones: api.listMilestones,
+}));
+vi.mock('../features/project-files/project-file-api.js', () => ({
+  listProjectFiles: api.listProjectFiles,
+  downloadProjectFile: vi.fn(),
 }));
 import { ProjectDetailPage } from './project-detail-page.jsx';
 
@@ -50,6 +55,11 @@ beforeEach(() => {
     milestones: [],
     pagination: { page: 1, total: 0, totalPages: 0 },
   });
+  api.listProjectFiles.mockReset();
+  api.listProjectFiles.mockResolvedValue({
+    files: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
 });
 
 describe('ProjectDetailPage', () => {
@@ -68,7 +78,7 @@ describe('ProjectDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Back to Projects' })).toHaveAttribute('href', '/projects');
   });
 
-  it('integrates Milestones without rendering other deferred sections or deletion', async () => {
+  it('integrates Milestones and Files without rendering invoices or deletion', async () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Website Redesign' });
     expect(screen.getByRole('heading', { name: 'Milestones' })).toBeInTheDocument();
@@ -76,7 +86,11 @@ describe('ProjectDetailPage', () => {
       'href',
       '/projects/project-1/milestones/new',
     );
-    expect(screen.queryByText(/files/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Files' })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Upload File' })[0]).toHaveAttribute(
+      'href',
+      '/projects/project-1/files/new',
+    );
     expect(screen.queryByText(/invoices/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
   });

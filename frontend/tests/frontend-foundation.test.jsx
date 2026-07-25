@@ -23,6 +23,46 @@ describe('frontend foundation', () => {
     expect(fetch).toHaveBeenCalledWith(`${frontendEnv.apiBaseUrl}/auth/refresh`, expect.objectContaining({ credentials: 'include', body: '{"ready":true}', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer memory-token' } }));
   });
 
+  it('sends FormData without forcing a content type and supports Blob responses', async () => {
+    const blob = new Blob(['file'], { type: 'application/pdf' });
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'Content-Disposition': 'attachment; filename="file.pdf"' }),
+      blob: vi.fn().mockResolvedValue(blob),
+    });
+    const body = new FormData();
+    body.append('file', blob, 'file.pdf');
+    const result = await apiRequest('/projects/project-1/files/file-1/download', {
+      method: 'POST',
+      body,
+      accessToken: 'memory-token',
+      responseType: 'blob',
+    });
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/projects/project-1/files/file-1/download'),
+      expect.objectContaining({
+        body,
+        headers: { Authorization: 'Bearer memory-token' },
+        credentials: 'include',
+      }),
+    );
+    expect(result.data).toBe(blob);
+  });
+
+  it('normalizes JSON errors from failed Blob endpoints', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(jsonResponse({
+      error: { code: 'PROJECT_FILE_CONTENT_NOT_FOUND', message: 'Unavailable.' },
+    }, { ok: false, status: 404 }));
+    await expect(apiRequest('/download', {
+      accessToken: 'memory-token',
+      responseType: 'blob',
+    })).rejects.toMatchObject({
+      status: 404,
+      code: 'PROJECT_FILE_CONTENT_NOT_FOUND',
+    });
+  });
+
   it('handles 204, standardized failures, network failures, and aborts safely', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, status: 204 });
     await expect(apiRequest('/auth/logout', { method: 'POST' })).resolves.toBeNull();

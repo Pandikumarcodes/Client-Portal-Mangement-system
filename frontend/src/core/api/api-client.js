@@ -2,13 +2,17 @@ import { frontendEnv } from '../../config/env.js';
 import { ApiClientError } from './api-error.js';
 
 export async function apiRequest(path, options = {}) {
-  const { method = 'GET', body, accessToken, signal } = options;
+  const { method = 'GET', body, accessToken, signal, responseType = 'json' } = options;
   const url = /^https?:\/\//i.test(path) ? path : `${frontendEnv.apiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`;
   const headers = {};
   const request = { method, credentials: 'include', headers, signal };
   if (body !== undefined) {
-    headers['Content-Type'] = 'application/json';
-    request.body = JSON.stringify(body);
+    if (body instanceof FormData) {
+      request.body = body;
+    } else {
+      headers['Content-Type'] = 'application/json';
+      request.body = JSON.stringify(body);
+    }
   }
   if (typeof accessToken === 'string' && accessToken.length > 0) {
     headers.Authorization = `Bearer ${accessToken}`;
@@ -23,6 +27,12 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (response.status === 204) return null;
+  if (response.ok && responseType === 'blob') {
+    return {
+      data: await response.blob(),
+      headers: response.headers,
+    };
+  }
   let payload;
   try { payload = await response.json(); } catch { payload = null; }
   if (response.ok) return payload;

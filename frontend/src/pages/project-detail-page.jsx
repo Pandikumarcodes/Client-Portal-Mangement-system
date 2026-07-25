@@ -9,6 +9,7 @@ import { getProjectErrorMessage } from '../features/projects/get-project-error-m
 import { getProject } from '../features/projects/project-api.js';
 import { ProjectStatusBadge } from '../features/projects/project-status-badge.jsx';
 import { MilestoneList } from '../features/milestones/milestone-list.jsx';
+import { ProjectFileList } from '../features/project-files/project-file-list.jsx';
 
 export function ProjectDetailPage() {
   const { projectId } = useParams();
@@ -95,6 +96,7 @@ export function ProjectDetailPage() {
         </dl>
       </div>
       <MilestoneList projectId={project.id} />
+      <ProjectFileList projectId={project.id} />
       <Link className="secondary-link back-link" to="/projects">Back to Projects</Link>
     </section>
   );

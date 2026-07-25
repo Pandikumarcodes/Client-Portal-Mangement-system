@@ -29,5 +29,16 @@
 - Do not store Milestone records in browser storage.
 - Milestone completion is a status update. Do not add Milestone deletion or task-management
   features without an approved prompt.
-- Do not add Project or Milestone file or invoice UI without an approved prompt.
+- Project File routes are nested beneath Projects and are Organization Admin-only.
+- Do not add a top-level Files navigation link.
+- Route Project File operations through the authenticated API utility.
+- Never send `tenantId`, and never put `projectId` in Project File multipart bodies.
+- Do not manually set multipart `Content-Type` for `FormData`.
+- Never expose `storedName` or `storagePath`.
+- Do not persist File objects, Blobs, or Project File metadata in browser storage.
+- Downloads must use authenticated fetch and revoke temporary object URLs.
+- Do not add public URLs, hard deletion, or file replacement.
+- Project File archiving is a metadata status change.
+- Do not add previews, versioning, Client access, or cloud SDKs without an approved prompt.
+- Do not add Project or Milestone invoice UI without an approved prompt.
 - Resolve Client labels from a shared Client collection; do not create per-Project Client requests.

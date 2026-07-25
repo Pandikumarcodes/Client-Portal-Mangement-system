@@ -362,6 +362,14 @@ button:disabled {
   background: #e7f6ec;
   color: #176a38;
 }
+.status-project-file-active {
+  background: #e7f6ec;
+  color: #176a38;
+}
+.status-project-file-archived {
+  background: #edf0f5;
+  color: #4d596d;
+}
 .project-toolbar {
   align-items: flex-end;
   flex-wrap: wrap;
@@ -391,6 +399,11 @@ button:disabled {
   margin-top: 2rem;
   padding-top: 2rem;
 }
+.project-file-section {
+  border-top: 1px solid #d8deea;
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
 .milestone-section-header {
   align-items: center;
   display: flex;
@@ -413,6 +426,45 @@ button:disabled {
   font-weight: 700;
   max-width: 240px;
   overflow-wrap: anywhere;
+}
+.project-file-name,
+.long-filename,
+.read-only-file span {
+  overflow-wrap: anywhere;
+}
+.project-file-name {
+  font-weight: 700;
+  max-width: 240px;
+}
+.file-size,
+.field-help,
+.selected-file,
+.read-only-file {
+  color: #66738a;
+}
+.field-help,
+.selected-file {
+  font-size: 0.86rem;
+  margin: 0.4rem 0 0;
+}
+.selected-file span,
+.read-only-file span {
+  color: #263653;
+  font-weight: 700;
+}
+.file-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.file-actions .text-button {
+  padding: 0.45rem 0.65rem;
+}
+.file-detail-actions {
+  border-top: 1px solid #e1e6f0;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
 }
 .pagination,
 .button-row {
@@ -565,5 +617,9 @@ button:disabled {
   }
   .milestone-section-header .primary-link {
     justify-content: center;
+  }
+  .file-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
