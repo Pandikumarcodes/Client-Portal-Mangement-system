@@ -13,6 +13,7 @@ import { requestIdMiddleware } from './core/logging/request-id.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { notFoundHandler } from './middlewares/not-found.js';
 import authRouter from './modules/auth/auth.routes.js';
+import clientRouter from './modules/clients/client.routes.js';
 
 const httpLogger = createHttpLogger({
   loggerInstance: logger,
@@ -40,6 +41,7 @@ export function createApp() {
   app.use(cookieParser());
   app.use('/api/v1/health', healthRouter);
   app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/clients', clientRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 
