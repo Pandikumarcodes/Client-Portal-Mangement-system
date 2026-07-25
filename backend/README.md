@@ -314,8 +314,9 @@ identities. Each Client requires an Organization `tenantId` and stores `firstNam
 Email uniqueness is scoped to each Organization, so the same address may exist in different tenants.
 
 Client create, list, get, and update APIs are available to authenticated Organization Admin users.
-Invitations, account linking, frontend screens, and invoices are not implemented. Client queries use
-`request.auth.tenantId`; tenant ownership never comes from request body or query input.
+Invitations, account linking, frontend screens, and Client-user Invoice access are not implemented.
+Client queries use `request.auth.tenantId`; tenant ownership never comes from request body or query
+input.
 
 ## Projects
 
@@ -347,8 +348,7 @@ unique.
 
 Safe Project-route errors include `PROJECT_NOT_FOUND`, `CLIENT_NOT_FOUND`, `VALIDATION_ERROR`,
 `AUTHENTICATION_REQUIRED`, and `FORBIDDEN`. Project frontend screens, Client portal Project access,
-milestones, files, invoices, dates, budgets, progress, comments, and activity feeds are not
-implemented.
+milestones, dates, budgets, progress, comments, and activity feeds are not implemented.
 
 ## Project Files
 
@@ -388,6 +388,41 @@ route. Public and signed URLs and hard deletion are unsupported. Safe Project Fi
 
 The frontend, Client-user and Super Admin access, previews, thumbnails, versioning, file
 replacement, search, cloud storage, virus scanning, and public sharing are not implemented.
+
+## Project Invoices
+
+Project Invoices provide a minimal Invoice-record capability under existing tenant-owned Projects.
+Only authenticated Organization Admins can use the nested endpoints:
+
+- `POST /api/v1/projects/:projectId/invoices`
+- `GET /api/v1/projects/:projectId/invoices`
+- `GET /api/v1/projects/:projectId/invoices/:invoiceId`
+- `PATCH /api/v1/projects/:projectId/invoices/:invoiceId`
+
+An Invoice stores its Project, manually entered `invoiceNumber`, integer `amountCents`, `currency`,
+required `issueDate` and `dueDate`, `status`, optional `notes`, and timestamps. `amountCents` is the
+exact USD amount in cents; decimal dollar persistence and currency conversion are not supported.
+USD is the only currency. Supported statuses are `draft`, `sent`, `paid`, and `void`; new records
+default to `draft`. Paid is a manually selected record status, and void retains the Invoice.
+
+Both dates accept valid ISO-8601 dates or datetimes. The due date must be on or after the issue date,
+including when only one date is changed. Past dates are allowed, and no overdue state is calculated
+or stored.
+
+Lists are ordered newest first. Query parameters support `page` (default 1), `limit` (default 20,
+maximum 50), and optional `status`. Search, custom sorting, amount filters, and date filters are
+unsupported.
+
+Every operation takes `tenantId` only from `request.auth.tenantId`, verifies the tenant-owned
+Project before accessing Invoices, and scopes Invoice queries by both tenant and Project. Missing
+and cross-tenant Projects return `PROJECT_NOT_FOUND`; missing and cross-tenant Invoices return
+`INVOICE_NOT_FOUND`. Responses use explicit Invoice DTOs and never expose `tenantId`.
+
+Safe Invoice errors include `PROJECT_NOT_FOUND`, `INVOICE_NOT_FOUND`,
+`INVOICE_DATE_RANGE_INVALID`, `VALIDATION_ERROR`, `AUTHENTICATION_REQUIRED`, and `FORBIDDEN`.
+There is no DELETE endpoint. Line items, taxes, discounts, payments and payment providers, PDFs,
+email delivery, recurring billing, automatic overdue behavior, and Client-user access are not
+implemented.
 
 ## Structured logging and request correlation
 
@@ -482,11 +517,12 @@ Run the commands in order when troubleshooting:
 
 The backend implements centralized configuration, database and HTTP lifecycle management, health
 checks, safe errors and validation, structured logging and request correlation, authentication
-lifecycle endpoints, tenant authorization, Client management APIs, the minimal Project API, and
-tenant-scoped Project File delivery. Organization is the tenant root, and tenant-owned Client,
-Project, and Project File operations use verified authentication context.
+lifecycle endpoints, tenant authorization, Client management APIs, the minimal Project API,
+tenant-scoped Project File delivery, and basic tenant-scoped Project Invoice records. Organization
+is the tenant root, and tenant-owned Client, Project, Project File, and Invoice operations use
+verified authentication context.
 
 Organization onboarding beyond registration, audit logging, persistent refresh sessions, Project
-frontend screens, Client portal Project/File access, milestones, invoices, and the other deferred
-Project features described above remain unimplemented. Never commit `.env`; it can contain database
-credentials, JWT secrets, and other environment-specific configuration.
+and Invoice frontend screens, Client portal Project/File/Invoice access, milestones, and the other
+deferred Project features described above remain unimplemented. Never commit `.env`; it can contain
+database credentials, JWT secrets, and other environment-specific configuration.

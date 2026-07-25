@@ -74,6 +74,17 @@
 - Project File downloads must pass through authenticated routes. Do not add public links, hard
   deletion, Client access, previews, versioning, or cloud storage without an approved prompt.
 - Archiving Project File metadata must not remove its stored content.
+- Every Invoice query must include both `tenantId` and `projectId`, and every Invoice operation must
+  verify the tenant-scoped Project first.
+- Invoice tenant context comes only from `request.auth.tenantId`, and Invoice DTOs must never expose
+  `tenantId`.
+- Store Invoice money as integer `amountCents`; never persist floating-point dollar values. USD is
+  the only approved MVP Invoice currency.
+- Do not calculate or store Invoice overdue state.
+- Do not add Invoice payment logic, line items, tax, or discounts without an approved prompt.
+- Do not add Invoice PDF or email behavior without an approved prompt.
+- Do not add Invoice deletion. Void is a status change, not deletion.
+- Do not add Client-user Invoice access without an approved prompt.
 - Client profiles and User authentication identities are separate concepts. Client models must not
   perform HTTP or authentication workflows, and routes must not access models directly.
 - Never trust tenant IDs from client input. Tenant-scoped repositories must use

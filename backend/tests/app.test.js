@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import mongoose from 'mongoose';
 import request from 'supertest';
 
 const mocks = vi.hoisted(() => ({
@@ -52,6 +53,45 @@ beforeEach(() => {
 });
 
 describe('createApp', () => {
+  it('registers protected nested Invoice routes without deletion, payments, PDFs, or email', async () => {
+    const listResponse = await request(createApp()).get(
+      '/api/v1/projects/1234567890abcdef12345678/invoices',
+    );
+    const createResponse = await request(createApp()).post(
+      '/api/v1/projects/1234567890abcdef12345678/invoices',
+    );
+    const deleteResponse = await request(createApp()).delete(
+      '/api/v1/projects/1234567890abcdef12345678/invoices/abcdefabcdef123456789012',
+    );
+    const paymentResponse = await request(createApp()).post(
+      '/api/v1/projects/1234567890abcdef12345678/invoices/abcdefabcdef123456789012/pay',
+    );
+    const pdfResponse = await request(createApp()).get(
+      '/api/v1/projects/1234567890abcdef12345678/invoices/abcdefabcdef123456789012/pdf',
+    );
+    const emailResponse = await request(createApp()).post(
+      '/api/v1/projects/1234567890abcdef12345678/invoices/abcdefabcdef123456789012/email',
+    );
+
+    for (const response of [listResponse, createResponse]) {
+      expect(response.status).toBe(401);
+      expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+      expect(response.headers['x-request-id']).toEqual(expect.any(String));
+    }
+    for (const response of [deleteResponse, paymentResponse, pdfResponse, emailResponse]) {
+      expect(response.status).toBe(404);
+      expect(response.body.error.code).toBe('RESOURCE_NOT_FOUND');
+    }
+  });
+
+  it('does not connect to MongoDB or call an external service during application composition', () => {
+    const connectSpy = vi.spyOn(mongoose, 'connect');
+    const app = createApp();
+    expect(typeof app).toBe('function');
+    expect(connectSpy).not.toHaveBeenCalled();
+    connectSpy.mockRestore();
+  });
+
   it('registers protected nested Project File routes without deletion or public storage', async () => {
     const listResponse = await request(createApp()).get(
       '/api/v1/projects/1234567890abcdef12345678/files',
