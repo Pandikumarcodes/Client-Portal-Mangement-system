@@ -1,4 +1,5 @@
 import { isIP } from 'node:net';
+import path from 'node:path';
 
 import dotenv from 'dotenv';
 import { z } from 'zod';
@@ -59,6 +60,14 @@ const logLevelSchema = z
   .pipe(z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional());
 
 const jwtSecretSchema = z.string().min(32);
+const projectFileStorageRootSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .refine((value) => !value.includes('\0'))
+  .default('./storage/project-files')
+  .transform((value) => path.resolve(value))
+  .refine((value) => value !== path.parse(value).root);
 
 const environmentSchema = z
   .object({
@@ -70,6 +79,7 @@ const environmentSchema = z
     LOG_LEVEL: logLevelSchema,
     JWT_ACCESS_SECRET: jwtSecretSchema,
     JWT_REFRESH_SECRET: jwtSecretSchema,
+    PROJECT_FILE_STORAGE_ROOT: projectFileStorageRootSchema,
   })
   .superRefine((values, context) => {
     if (values.JWT_ACCESS_SECRET === values.JWT_REFRESH_SECRET) {
@@ -90,6 +100,7 @@ const validation = environmentSchema.safeParse({
   LOG_LEVEL: process.env.LOG_LEVEL,
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
+  PROJECT_FILE_STORAGE_ROOT: process.env.PROJECT_FILE_STORAGE_ROOT,
 });
 
 if (!validation.success) {
@@ -117,4 +128,5 @@ export const env = Object.freeze({
   logLevel: validation.data.LOG_LEVEL ?? defaultLogLevels[validation.data.NODE_ENV],
   jwtAccessSecret: validation.data.JWT_ACCESS_SECRET,
   jwtRefreshSecret: validation.data.JWT_REFRESH_SECRET,
+  projectFileStorageRoot: validation.data.PROJECT_FILE_STORAGE_ROOT,
 });

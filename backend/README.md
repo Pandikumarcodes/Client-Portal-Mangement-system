@@ -27,14 +27,15 @@ error identifying the affected field without printing environment contents.
 
 Currently supported variables:
 
-| Variable      | Accepted values                                                 | Default             | Exported value   |
-| ------------- | --------------------------------------------------------------- | ------------------- | ---------------- |
-| `NODE_ENV`    | `development`, `test`, or `production`                          | `development`       | `env.nodeEnv`    |
-| `PORT`        | Integer from `1` through `65535` as text                        | `5000`              | `env.port`       |
-| `MONGO_URI`   | Required Atlas URI beginning with `mongodb+srv://`              | None                | `env.mongoUri`   |
-| `DNS_SERVERS` | Optional comma-separated IPv4 or IPv6 addresses                 | Empty               | `env.dnsServers` |
-| `CLIENT_URL`  | Required absolute HTTP or HTTPS URL                             | None                | `env.clientUrl`  |
-| `LOG_LEVEL`   | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, or `silent` | Environment-derived | `env.logLevel`   |
+| Variable                    | Accepted values                                                 | Default                   | Exported value               |
+| --------------------------- | --------------------------------------------------------------- | ------------------------- | ---------------------------- |
+| `NODE_ENV`                  | `development`, `test`, or `production`                          | `development`             | `env.nodeEnv`                |
+| `PORT`                      | Integer from `1` through `65535` as text                        | `5000`                    | `env.port`                   |
+| `MONGO_URI`                 | Required Atlas URI beginning with `mongodb+srv://`              | None                      | `env.mongoUri`               |
+| `DNS_SERVERS`               | Optional comma-separated IPv4 or IPv6 addresses                 | Empty                     | `env.dnsServers`             |
+| `CLIENT_URL`                | Required absolute HTTP or HTTPS URL                             | None                      | `env.clientUrl`              |
+| `LOG_LEVEL`                 | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, or `silent` | Environment-derived       | `env.logLevel`               |
+| `PROJECT_FILE_STORAGE_ROOT` | Non-empty local filesystem path                                 | `./storage/project-files` | `env.projectFileStorageRoot` |
 
 `PORT` is normalized to a number. `MONGO_URI` must be non-empty, safely parseable, and contain one
 valid SRV hostname without an explicit port. `DNS_SERVERS` is normalized into a deduplicated,
@@ -349,6 +350,45 @@ Safe Project-route errors include `PROJECT_NOT_FOUND`, `CLIENT_NOT_FOUND`, `VALI
 milestones, files, invoices, dates, budgets, progress, comments, and activity feeds are not
 implemented.
 
+## Project Files
+
+Project Files provide minimal deliverable storage under existing tenant-owned Projects. Only
+authenticated Organization Admins can use the nested endpoints:
+
+- `POST /api/v1/projects/:projectId/files`
+- `GET /api/v1/projects/:projectId/files`
+- `GET /api/v1/projects/:projectId/files/:fileId`
+- `GET /api/v1/projects/:projectId/files/:fileId/download`
+- `PATCH /api/v1/projects/:projectId/files/:fileId`
+
+Uploads use `multipart/form-data`, accept exactly one binary field named `file`, and optionally
+accept a `description` text field of at most 500 characters. The maximum size is 10 MiB. Accepted
+MIME types are PDF (`application/pdf`), PNG (`image/png`), JPEG (`image/jpeg`), plain text
+(`text/plain`), CSV (`text/csv`), Word Open XML, and Excel Open XML. The metadata statuses are
+`active` and `archived`; archiving does not remove content, and restoring sets the status to
+`active`.
+
+Every operation obtains `tenantId` only from authenticated context and verifies the Project with
+both tenant and Project IDs before file metadata or storage access. Cross-tenant resources therefore
+appear missing. Responses contain explicit safe metadata and never include tenant IDs, generated
+stored names, or storage paths.
+
+Binary content is stored under the normalized `PROJECT_FILE_STORAGE_ROOT`, which defaults to
+`./storage/project-files`. Runtime content is Git-ignored. Original names are sanitized display
+metadata only; cryptographically random storage names and extensions from the approved MIME mapping
+prevent user-controlled paths and overwrites. The directory is never exposed through
+`express.static`.
+
+Downloads are private, no-store, attachment responses streamed only through the authorized backend
+route. Public and signed URLs and hard deletion are unsupported. Safe Project File errors include
+`PROJECT_NOT_FOUND`, `PROJECT_FILE_REQUIRED`, `PROJECT_FILE_TYPE_NOT_ALLOWED`,
+`PROJECT_FILE_TOO_LARGE`, `PROJECT_FILE_UPLOAD_INVALID`, `PROJECT_FILE_NOT_FOUND`,
+`PROJECT_FILE_CONTENT_NOT_FOUND`, `PROJECT_FILE_STORAGE_ERROR`, `VALIDATION_ERROR`,
+`AUTHENTICATION_REQUIRED`, and `FORBIDDEN`.
+
+The frontend, Client-user and Super Admin access, previews, thumbnails, versioning, file
+replacement, search, cloud storage, virus scanning, and public sharing are not implemented.
+
 ## Structured logging and request correlation
 
 The application uses one centralized Pino logger and emits newline-delimited JSON without
@@ -442,11 +482,11 @@ Run the commands in order when troubleshooting:
 
 The backend implements centralized configuration, database and HTTP lifecycle management, health
 checks, safe errors and validation, structured logging and request correlation, authentication
-lifecycle endpoints, tenant authorization, Client management APIs, and the minimal Project API.
-Organization is the tenant root, and tenant-owned Client and Project operations use verified
-authentication context.
+lifecycle endpoints, tenant authorization, Client management APIs, the minimal Project API, and
+tenant-scoped Project File delivery. Organization is the tenant root, and tenant-owned Client,
+Project, and Project File operations use verified authentication context.
 
 Organization onboarding beyond registration, audit logging, persistent refresh sessions, Project
-frontend screens, Client portal Project access, milestones, files, invoices, and the other deferred
+frontend screens, Client portal Project/File access, milestones, invoices, and the other deferred
 Project features described above remain unimplemented. Never commit `.env`; it can contain database
 credentials, JWT secrets, and other environment-specific configuration.

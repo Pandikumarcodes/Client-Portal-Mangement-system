@@ -14,6 +14,7 @@ import { errorHandler } from './middlewares/error-handler.js';
 import { notFoundHandler } from './middlewares/not-found.js';
 import authRouter from './modules/auth/auth.routes.js';
 import clientRouter from './modules/clients/client.routes.js';
+import { projectFileRouter } from './modules/project-files/project-file.routes.js';
 import { projectRouter } from './modules/projects/project.routes.js';
 
 const httpLogger = createHttpLogger({
@@ -44,6 +45,7 @@ export function createApp() {
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/clients', clientRouter);
   app.use('/api/v1/projects', projectRouter);
+  app.use('/api/v1/projects/:projectId/files', projectFileRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 

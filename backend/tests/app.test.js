@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
     logLevel: 'silent',
     jwtAccessSecret: 'access-secret-for-app-tests-with-32-chars',
     jwtRefreshSecret: 'refresh-secret-for-app-tests-32-chars',
+    projectFileStorageRoot: 'C:\\temporary\\project-file-app-tests',
   }),
 }));
 
@@ -51,6 +52,32 @@ beforeEach(() => {
 });
 
 describe('createApp', () => {
+  it('registers protected nested Project File routes without deletion or public storage', async () => {
+    const listResponse = await request(createApp()).get(
+      '/api/v1/projects/1234567890abcdef12345678/files',
+    );
+    const createResponse = await request(createApp()).post(
+      '/api/v1/projects/1234567890abcdef12345678/files',
+    );
+    const downloadResponse = await request(createApp()).get(
+      '/api/v1/projects/1234567890abcdef12345678/files/abcdefabcdef123456789012/download',
+    );
+    const deleteResponse = await request(createApp()).delete(
+      '/api/v1/projects/1234567890abcdef12345678/files/abcdefabcdef123456789012',
+    );
+    const staticResponse = await request(createApp()).get('/storage/project-files/private.pdf');
+
+    for (const response of [listResponse, createResponse, downloadResponse]) {
+      expect(response.status).toBe(401);
+      expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+      expect(response.headers['x-request-id']).toEqual(expect.any(String));
+    }
+    expect(deleteResponse.status).toBe(404);
+    expect(deleteResponse.body.error.code).toBe('RESOURCE_NOT_FOUND');
+    expect(staticResponse.status).toBe(404);
+    expect(staticResponse.body.error.code).toBe('RESOURCE_NOT_FOUND');
+  });
+
   it('registers protected Project routes without implementing deletion', async () => {
     const listResponse = await request(createApp()).get('/api/v1/projects');
     const createResponse = await request(createApp()).post('/api/v1/projects').send({});

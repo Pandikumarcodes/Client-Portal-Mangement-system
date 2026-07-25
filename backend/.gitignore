@@ -12,6 +12,10 @@ dist/
 logs/
 *.log
 
+# Runtime Project File content
+storage/project-files/**
+!storage/project-files/.gitkeep
+
 # Editors
 .idea/
 .vscode/

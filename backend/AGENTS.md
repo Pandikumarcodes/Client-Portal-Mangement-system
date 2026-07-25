@@ -65,6 +65,15 @@
   context middleware in that order.
 - Archive Projects through a status update, not deletion. Do not add milestones or progress without
   an approved prompt.
+- Every ProjectFile query must include both `tenantId` and `projectId`, and every operation must
+  verify the tenant-scoped Project first.
+- ProjectFile tenant context comes only from `request.auth.tenantId`; never expose `storedName` or
+  `storagePath`, and never use `originalName` as a storage filename.
+- Use the Project File storage adapter instead of direct filesystem access in controllers and
+  services. Never store file binaries in MongoDB or mount upload storage with `express.static`.
+- Project File downloads must pass through authenticated routes. Do not add public links, hard
+  deletion, Client access, previews, versioning, or cloud storage without an approved prompt.
+- Archiving Project File metadata must not remove its stored content.
 - Client profiles and User authentication identities are separate concepts. Client models must not
   perform HTTP or authentication workflows, and routes must not access models directly.
 - Never trust tenant IDs from client input. Tenant-scoped repositories must use

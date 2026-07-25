@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import path from 'node:path';
 
 const originalProcessEnvironment = { ...process.env };
 const safeMongoUri =
@@ -29,6 +30,7 @@ beforeEach(() => {
   delete process.env.PORT;
   delete process.env.DNS_SERVERS;
   delete process.env.LOG_LEVEL;
+  delete process.env.PROJECT_FILE_STORAGE_ROOT;
 });
 
 afterEach(() => {
@@ -83,6 +85,29 @@ describe('environment configuration', () => {
 
     expect(env.jwtAccessSecret).toBe(safeAccessSecret);
     expect(env.jwtRefreshSecret).toBe(safeRefreshSecret);
+  });
+
+  it('defaults and normalizes the Project File storage root', async () => {
+    const { env } = await importEnvironment();
+
+    expect(env.projectFileStorageRoot).toBe(path.resolve('./storage/project-files'));
+  });
+
+  it('normalizes a configured Project File storage root', async () => {
+    process.env.PROJECT_FILE_STORAGE_ROOT = './temporary/project-files';
+
+    const { env } = await importEnvironment();
+
+    expect(env.projectFileStorageRoot).toBe(path.resolve('./temporary/project-files'));
+  });
+
+  it('rejects an empty, null-byte, or filesystem-root Project File storage root safely', async () => {
+    for (const value of ['', 'private\0path', path.parse(path.resolve('.')).root]) {
+      process.env.PROJECT_FILE_STORAGE_ROOT = value;
+      await expect(importEnvironment()).rejects.toThrow(
+        'Invalid environment configuration: invalid value for PROJECT_FILE_STORAGE_ROOT.',
+      );
+    }
   });
 
   it.each(['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'])('rejects a missing %s', async (field) => {
