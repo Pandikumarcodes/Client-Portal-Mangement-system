@@ -1,2 +1,21 @@
-import { useAuth } from '../features/auth/use-auth.js';
-export function ClientHomePage() { const { user, organization, logout } = useAuth(); return <section className="dashboard-shell"><article className="dashboard-card"><span className="eyebrow">Client Management Portal</span><h1>Client workspace</h1><p>Welcome{user?.firstName ? `, ${user.firstName}` : ''}. {organization?.name ? `Your organization is ${organization.name}.` : ''}</p><button type="button" onClick={logout}>Log out</button></article></section>; }
+import { useAuth } from "../features/auth/use-auth.js";
+export function ClientHomePage() {
+  const { user, organization, logout } = useAuth();
+  return (
+    <section className="dashboard-shell">
+      <article className="dashboard-card">
+        <span className="eyebrow">Client Management Portal</span>
+        <h1>Client workspace</h1>
+        <p>
+          Welcome{user?.firstName ? `, ${user.firstName}` : ""}.{" "}
+          {organization?.name
+            ? `Your organization is ${organization.name}.`
+            : ""}
+        </p>
+        <button type="button" onClick={logout}>
+          Log out
+        </button>
+      </article>
+    </section>
+  );
+}
