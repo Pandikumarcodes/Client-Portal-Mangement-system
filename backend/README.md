@@ -305,6 +305,17 @@ header, and call `/logout` while clearing frontend state.
 
 Persistent refresh-session revocation, client/project APIs, and frontend code remain deferred.
 
+## Client profiles
+
+Client profiles are minimal tenant-owned business-customer records separate from User authentication
+identities. Each Client requires an Organization `tenantId` and stores `firstName`, `lastName`,
+`email`, optional `companyName`, `status`, and an optional `userId` for future portal-account linking.
+Email uniqueness is scoped to each Organization, so the same address may exist in different tenants.
+
+Client APIs, services, invitations, account linking, frontend screens, projects, and invoices are not
+implemented. Future Client queries must use `request.auth.tenantId`; tenant ownership must never come
+from request body or query input.
+
 ## Structured logging and request correlation
 
 The application uses one centralized Pino logger and emits newline-delimited JSON without

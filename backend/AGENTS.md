@@ -53,6 +53,10 @@
 - CORS must retain the configured origin restriction and must never use a wildcard with credentials.
 - Protected routes must run `authenticateRequest` first; role guards and tenant guards run only after
   authentication.
+- Client records are always tenant scoped; future Client queries must include `tenantId` from
+  `request.auth.tenantId`, never request body or query input.
+- Client profiles and User authentication identities are separate concepts. Client models must not
+  perform HTTP or authentication workflows, and routes must not access models directly.
 - Never trust tenant IDs from client input. Tenant-scoped repositories must use
   `request.auth.tenantId`.
 - Refresh tokens must never appear in JSON or logs. Logout currently clears the cookie without
