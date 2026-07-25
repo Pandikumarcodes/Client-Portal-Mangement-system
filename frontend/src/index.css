@@ -58,6 +58,33 @@ button:hover {
   justify-content: space-between;
   padding: 1rem clamp(1rem, 5vw, 5rem);
 }
+.app-navigation {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+}
+.nav-link {
+  border-radius: 8px;
+  color: #526078;
+  font-weight: 700;
+  padding: 0.55rem 0.7rem;
+}
+.nav-link:hover,
+.nav-link-active {
+  background: #eef2fb;
+  color: #2547ad;
+  text-decoration: none;
+}
+.nav-logout {
+  background: transparent;
+  color: #526078;
+  font-weight: 700;
+  padding: 0.55rem 0.7rem;
+}
+.nav-logout:hover {
+  background: #fff0f1;
+  color: #8f2635;
+}
 .brand {
   color: #162447;
   font-weight: 800;
@@ -115,7 +142,10 @@ button:hover {
   font-weight: 700;
   margin-bottom: 0.4rem;
 }
-.form-field input {
+.form-field input,
+.form-field select,
+.form-field textarea {
+  background: #fff;
   border: 1px solid #cbd4e3;
   border-radius: 9px;
   color: #172033;
@@ -123,7 +153,13 @@ button:hover {
   padding: 0.7rem 0.8rem;
   width: 100%;
 }
-.form-field input[aria-invalid="true"] {
+.form-field textarea {
+  line-height: 1.5;
+  resize: vertical;
+}
+.form-field input[aria-invalid="true"],
+.form-field select[aria-invalid="true"],
+.form-field textarea[aria-invalid="true"] {
   border-color: #bf3b4b;
 }
 .field-error {
@@ -239,7 +275,9 @@ button:disabled {
   padding: 1rem;
 }
 .list-toolbar label {
+  display: block;
   font-weight: 700;
+  margin-bottom: 0.35rem;
 }
 .list-toolbar select {
   background: #fff;
@@ -295,6 +333,46 @@ button:disabled {
 .status-inactive {
   background: #edf0f5;
   color: #4d596d;
+}
+.status-project-active {
+  background: #e7f6ec;
+  color: #176a38;
+}
+.status-project-on_hold {
+  background: #fff3d8;
+  color: #7a4c00;
+}
+.status-project-completed {
+  background: #e8efff;
+  color: #2547ad;
+}
+.status-project-archived {
+  background: #edf0f5;
+  color: #4d596d;
+}
+.project-toolbar {
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.project-toolbar > div {
+  min-width: 190px;
+}
+.toolbar-error {
+  color: #8f2635;
+  margin: 0 0 0.65rem;
+}
+.description-cell {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detail-wide {
+  grid-column: 1 / -1;
+}
+.detail-wide dd {
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 .pagination,
 .button-row {
@@ -364,7 +442,14 @@ button:disabled {
 }
 @media (max-width: 600px) {
   .app-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
     padding: 1rem;
+  }
+  .app-navigation {
+    flex-wrap: wrap;
+    width: 100%;
   }
   .auth-links {
     flex-direction: column;
@@ -425,5 +510,13 @@ button:disabled {
   .button-row {
     align-items: stretch;
     flex-direction: column;
+  }
+  .project-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .project-toolbar > div,
+  .project-toolbar select {
+    width: 100%;
   }
 }

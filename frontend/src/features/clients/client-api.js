@@ -34,9 +34,9 @@ export async function listClients(options = {}, accessToken) {
   if (options.status !== undefined && options.status !== '') {
     parameters.set('status', options.status);
   }
-  const response = await apiRequest(`/clients?${parameters.toString()}`, {
-    accessToken,
-  });
+  const requestOptions = { accessToken };
+  if (options.signal) requestOptions.signal = options.signal;
+  const response = await apiRequest(`/clients?${parameters.toString()}`, requestOptions);
   return {
     clients: response.data.clients,
     pagination: response.data.pagination,

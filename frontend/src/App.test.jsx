@@ -10,7 +10,14 @@ const clientApi = vi.hoisted(() => ({
   createClient: vi.fn(),
   updateClient: vi.fn(),
 }));
+const projectApi = vi.hoisted(() => ({
+  listProjects: vi.fn(),
+  getProject: vi.fn(),
+  createProject: vi.fn(),
+  updateProject: vi.fn(),
+}));
 vi.mock('./features/clients/client-api.js', () => clientApi);
+vi.mock('./features/projects/project-api.js', () => projectApi);
 import App from './App.jsx';
 
 const client = {
@@ -19,6 +26,15 @@ const client = {
   lastName: 'Lovelace',
   email: 'ada@example.com',
   companyName: null,
+  status: 'active',
+  createdAt: '2026-07-01T00:00:00.000Z',
+  updatedAt: '2026-07-01T00:00:00.000Z',
+};
+const project = {
+  id: 'project-1',
+  clientId: 'client-1',
+  name: 'Website Redesign',
+  description: null,
   status: 'active',
   createdAt: '2026-07-01T00:00:00.000Z',
   updatedAt: '2026-07-01T00:00:00.000Z',
@@ -46,6 +62,62 @@ beforeEach(() => {
   clientApi.getClient.mockReset();
   clientApi.listClients.mockResolvedValue({ clients: [], pagination: { page: 1, totalPages: 0 } });
   clientApi.getClient.mockResolvedValue(client);
+  projectApi.listProjects.mockReset();
+  projectApi.getProject.mockReset();
+  projectApi.listProjects.mockResolvedValue({
+    projects: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
+  projectApi.getProject.mockResolvedValue(project);
+});
+
+describe('application Project routes and navigation', () => {
+  it.each([
+    ['/projects', 'Projects'],
+    ['/projects/new', 'Create Project'],
+    ['/projects/project-1', 'Website Redesign'],
+    ['/projects/project-1/edit', 'Edit Project'],
+  ])('allows Organization Admin access to %s', async (path, heading) => {
+    clientApi.listClients.mockResolvedValue({
+      clients: [client],
+      pagination: { page: 1, totalPages: 1 },
+    });
+    renderRoute(path, USER_ROLE.ORGANIZATION_ADMIN);
+    if (path.endsWith('/edit')) {
+      expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+    } else {
+      expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+    }
+  });
+
+  it.each([USER_ROLE.CLIENT, USER_ROLE.SUPER_ADMIN])(
+    'redirects %s users away from tenant Project routes',
+    async (role) => {
+      renderRoute('/projects', role);
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
+    },
+  );
+
+  it('redirects unauthenticated users away from Project routes', async () => {
+    renderRoute('/projects/new', null, 'unauthenticated');
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+  });
+
+  it('shows Projects and Clients navigation only to Organization Admin users', () => {
+    const { unmount } = renderRoute('/admin', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/projects');
+    expect(screen.getByRole('link', { name: 'Clients' })).toHaveAttribute('href', '/admin/clients');
+    unmount();
+    renderRoute('/client', USER_ROLE.CLIENT);
+    expect(screen.queryByRole('link', { name: 'Projects' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Clients' })).not.toBeInTheDocument();
+  });
+
+  it('keeps unknown Project routes on the existing not-found page', async () => {
+    renderRoute('/projects/project-1/unknown', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
 });
 
 describe('application Client routes', () => {

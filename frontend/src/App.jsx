@@ -13,6 +13,11 @@ import { NotFoundPage } from './pages/not-found-page.jsx';
 import { ClientListPage } from './pages/client-list-page.jsx';
 import { ClientCreatePage } from './pages/client-create-page.jsx';
 import { ClientDetailPage } from './pages/client-detail-page.jsx';
+import { ProjectListPage } from './pages/project-list-page.jsx';
+import { ProjectCreatePage } from './pages/project-create-page.jsx';
+import { ProjectDetailPage } from './pages/project-detail-page.jsx';
+import { ProjectEditPage } from './pages/project-edit-page.jsx';
+import { AppNavigation } from './components/app-navigation.jsx';
 
 function PublicRoute() {
   const { status, user } = useAuth();
@@ -21,7 +26,7 @@ function PublicRoute() {
 }
 
 export default function App() {
-  return <main className="app-shell"><header className="app-header"><Link className="brand" to="/">Client Portal</Link></header><Routes>
+  return <main className="app-shell"><header className="app-header"><Link className="brand" to="/">Client Portal</Link><AppNavigation /></header><Routes>
     <Route path="/login" element={<PublicRoute />}><Route index element={<LoginPage />} /></Route>
     <Route path="/register" element={<PublicRoute />}><Route index element={<RegisterPage />} /></Route>
     <Route element={<ProtectedRoute />}>
@@ -30,6 +35,10 @@ export default function App() {
         <Route path="/admin/clients" element={<ClientListPage />} />
         <Route path="/admin/clients/new" element={<ClientCreatePage />} />
         <Route path="/admin/clients/:clientId" element={<ClientDetailPage />} />
+        <Route path="/projects" element={<ProjectListPage />} />
+        <Route path="/projects/new" element={<ProjectCreatePage />} />
+        <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+        <Route path="/projects/:projectId/edit" element={<ProjectEditPage />} />
       </Route>
       <Route element={<RoleRoute allowedRoles={[USER_ROLE.CLIENT]} />}><Route path="/client" element={<ClientHomePage />} /></Route>
       <Route element={<RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]} />}><Route path="/super-admin" element={<SuperAdminHomePage />} /></Route>

@@ -17,7 +17,32 @@ Organization Admin users only. The interface supports listing and paginating pro
 active or inactive status, creating profiles, viewing details, editing details, and activating or
 deactivating a profile.
 
+Organization Admin Project Management is available at:
+
+- `/projects` — paginated Project list with status and Client filters
+- `/projects/new` — Project creation
+- `/projects/:projectId` — Project details
+- `/projects/:projectId/edit` — Project editing and status changes
+
+All Project routes require an authenticated Organization Admin. Client and Super Admin users cannot
+access these tenant Project screens, and the Projects navigation item is visible only to
+Organization Admin users. The list uses backend pagination with 20 records per page and supports
+the `active`, `on_hold`, `completed`, and `archived` statuses. The default unfiltered list can
+include archived Projects.
+
+Project creation requires selecting an existing Client and accepts a name plus an optional
+description. New Projects receive the backend's default `active` status. Editing supports Client
+reassignment, name, description, and status. Client choices are loaded through the existing
+authenticated Client API with readable labels; Project rows keep only `clientId` and do not perform
+per-row Client requests.
+
+The Project API uses the same `VITE_API_BASE_URL` configuration and authenticated native Fetch
+layer as the rest of the frontend. It never sends `tenantId`, and Project records are not stored in
+browser storage. Project deletion is unsupported; archiving is a status update. Milestones, files,
+invoices, dates, budgets, progress, team members, and Client-user Project access are not
+implemented.
+
 Deactivation is not deletion: inactive Client profiles remain stored and can be reactivated. The
 backend enforces tenant ownership from the authenticated session, and the frontend never sends
 `tenantId`. Creating a Client profile does not create a portal User account. Client invitations,
-account linking, projects, files, invoices, and other business modules are deferred.
+account linking, files, invoices, and other deferred business modules are not implemented.

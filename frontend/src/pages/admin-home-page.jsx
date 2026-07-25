@@ -24,6 +24,9 @@ function Dashboard({ title, user, organization, logout }) {
         <Link className="primary-link" to="/admin/clients">
           Manage clients
         </Link>
+        <Link className="primary-link" to="/projects">
+          Manage projects
+        </Link>
         <button type="button" onClick={logout}>
           Log out
         </button>

@@ -16,3 +16,12 @@
   enforcement.
 - Client deactivation is a reversible status change, not deletion.
 - Do not add Client invitation behavior without a separate approved prompt.
+- Project routes are Organization Admin-only.
+- Never send `tenantId` from frontend Project forms or Project API requests.
+- Route Project operations through `src/features/projects/project-api.js` and the authenticated
+  request utility.
+- Do not store Project records or tokens in browser storage.
+- Do not add Project deletion. Archive Projects through a status update.
+- Do not add Project milestones, files, invoices, dates, budgets, or progress without an approved
+  prompt.
+- Resolve Client labels from a shared Client collection; do not create per-Project Client requests.
