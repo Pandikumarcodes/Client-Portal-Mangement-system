@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { AuthContext } from './features/auth/auth-context.js';
+import { AuthProvider } from './features/auth/auth-provider.jsx';
 import { USER_ROLE } from './features/auth/auth.constants.js';
 
 const clientApi = vi.hoisted(() => ({
@@ -35,11 +36,15 @@ const invoiceApi = vi.hoisted(() => ({
   createInvoice: vi.fn(),
   updateInvoice: vi.fn(),
 }));
+const dashboardApi = vi.hoisted(() => ({
+  getOrganizationDashboard: vi.fn(),
+}));
 vi.mock('./features/clients/client-api.js', () => clientApi);
 vi.mock('./features/projects/project-api.js', () => projectApi);
 vi.mock('./features/milestones/milestone-api.js', () => milestoneApi);
 vi.mock('./features/project-files/project-file-api.js', () => projectFileApi);
 vi.mock('./features/invoices/invoice-api.js', () => invoiceApi);
+vi.mock('./features/dashboard/dashboard-api.js', () => dashboardApi);
 import App from './App.jsx';
 
 const client = {
@@ -150,6 +155,99 @@ beforeEach(() => {
   invoiceApi.getInvoice.mockResolvedValue(invoice);
   invoiceApi.createInvoice.mockResolvedValue(invoice);
   invoiceApi.updateInvoice.mockResolvedValue(invoice);
+  dashboardApi.getOrganizationDashboard.mockReset();
+  dashboardApi.getOrganizationDashboard.mockResolvedValue({
+    clients: { total: 0, active: 0, inactive: 0 },
+    projects: { total: 0, active: 0, onHold: 0, completed: 0, archived: 0 },
+    milestones: { total: 0, pending: 0, inProgress: 0, completed: 0 },
+    files: { total: 0, active: 0, archived: 0 },
+    invoices: { total: 0, draft: 0, sent: 0, paid: 0, void: 0 },
+  });
+});
+
+describe('Organization Dashboard routing and navigation', () => {
+  it('allows Organization Admin access to /dashboard', async () => {
+    renderRoute('/dashboard', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(await screen.findByRole('heading', { level: 2, name: 'Clients' }))
+      .toBeInTheDocument();
+  });
+
+  it.each([USER_ROLE.CLIENT, USER_ROLE.SUPER_ADMIN])(
+    'redirects %s away from the tenant dashboard',
+    async (role) => {
+      renderRoute('/dashboard', role);
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
+      expect(dashboardApi.getOrganizationDashboard).not.toHaveBeenCalled();
+    },
+  );
+
+  it('redirects unauthenticated users away from the tenant dashboard', async () => {
+    renderRoute('/dashboard', null, 'unauthenticated');
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+    expect(dashboardApi.getOrganizationDashboard).not.toHaveBeenCalled();
+  });
+
+  it('shows Dashboard first only for Organization Admin and retains active navigation styling', () => {
+    const { unmount } = renderRoute('/dashboard', USER_ROLE.ORGANIZATION_ADMIN);
+    const navigation = screen.getByRole('navigation', { name: 'Main navigation' });
+    const links = within(navigation).getAllByRole('link');
+    expect(links[0]).toHaveTextContent('Dashboard');
+    expect(links[0]).toHaveAttribute('href', '/dashboard');
+    expect(links[0]).toHaveClass('nav-link-active');
+    expect(within(navigation).getByRole('link', { name: 'Clients' })).toBeInTheDocument();
+    expect(within(navigation).getByRole('link', { name: 'Projects' })).toBeInTheDocument();
+    expect(within(navigation).getByRole('button', { name: 'Log out' })).toBeInTheDocument();
+    expect(within(navigation).queryByText(/Analytics|Reports|Revenue|Milestones|Files|Invoices/))
+      .not.toBeInTheDocument();
+    unmount();
+
+    const clientView = renderRoute('/client', USER_ROLE.CLIENT);
+    expect(screen.queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument();
+    clientView.unmount();
+    renderRoute('/super-admin', USER_ROLE.SUPER_ADMIN);
+    expect(screen.queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument();
+  });
+
+  it('keeps unknown Dashboard routes on the not-found page', async () => {
+    renderRoute('/dashboard/unknown', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
+
+  it.each(['/milestones', '/files', '/invoices'])(
+    'does not introduce a top-level %s route',
+    async (path) => {
+      renderRoute(path, USER_ROLE.ORGANIZATION_ADMIN);
+      expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+    },
+  );
+
+  it('preserves authentication restoration during direct Dashboard navigation', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          user: { role: USER_ROLE.ORGANIZATION_ADMIN, firstName: 'Admin' },
+          organization: { name: 'Acme' },
+          accessToken: 'restored-memory-token',
+        },
+      }),
+    });
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <AuthProvider><App /></AuthProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('Restoring your session');
+    expect(await screen.findByRole('heading', { level: 2, name: 'Clients' }))
+      .toBeInTheDocument();
+    expect(dashboardApi.getOrganizationDashboard).toHaveBeenCalledWith(
+      { signal: expect.any(AbortSignal) },
+      'restored-memory-token',
+    );
+  });
 });
 
 describe('application Project routes and navigation', () => {

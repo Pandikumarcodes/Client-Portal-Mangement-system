@@ -26,6 +26,7 @@ import { ProjectFileEditPage } from './pages/project-file-edit-page.jsx';
 import { InvoiceCreatePage } from './pages/invoice-create-page.jsx';
 import { InvoiceDetailPage } from './pages/invoice-detail-page.jsx';
 import { InvoiceEditPage } from './pages/invoice-edit-page.jsx';
+import { OrganizationDashboardPage } from './pages/organization-dashboard-page.jsx';
 import { AppNavigation } from './components/app-navigation.jsx';
 
 function PublicRoute() {
@@ -40,6 +41,7 @@ export default function App() {
     <Route path="/register" element={<PublicRoute />}><Route index element={<RegisterPage />} /></Route>
     <Route element={<ProtectedRoute />}>
       <Route element={<RoleRoute allowedRoles={[USER_ROLE.ORGANIZATION_ADMIN]} />}>
+        <Route path="/dashboard" element={<OrganizationDashboardPage />} />
         <Route path="/admin" element={<AdminHomePage />} />
         <Route path="/admin/clients" element={<ClientListPage />} />
         <Route path="/admin/clients/new" element={<ClientCreatePage />} />

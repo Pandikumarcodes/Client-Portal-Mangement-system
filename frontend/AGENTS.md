@@ -54,3 +54,12 @@
 - Do not add Invoice payments, line items, taxes, PDF generation, email delivery, or Client access
   without an approved prompt.
 - Resolve Client labels from a shared Client collection; do not create per-Project Client requests.
+- The Organization Dashboard is Organization Admin-only and must use the authenticated API utility.
+- Never submit or display `tenantId` in Dashboard requests or screens.
+- Dashboard counts are current-state summaries only and Dashboard data must not be stored in browser
+  storage.
+- Do not add Dashboard charts, trends, percentages, revenue totals, overdue counts, file-storage
+  totals, polling, or caching without an approved architecture prompt.
+- Milestones, Files, and Invoices remain Project-scoped; do not add top-level navigation for them.
+- Do not invent a Client dashboard endpoint. A Super Admin dashboard requires a separate approved
+  prompt.

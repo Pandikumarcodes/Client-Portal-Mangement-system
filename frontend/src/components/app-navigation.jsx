@@ -10,6 +10,7 @@ export function AppNavigation() {
     <nav className="app-navigation" aria-label="Main navigation">
       {user?.role === USER_ROLE.ORGANIZATION_ADMIN && (
         <>
+          <NavItem to="/dashboard">Dashboard</NavItem>
           <NavItem to="/admin">Home</NavItem>
           <NavItem to="/admin/clients">Clients</NavItem>
           <NavItem to="/projects">Projects</NavItem>

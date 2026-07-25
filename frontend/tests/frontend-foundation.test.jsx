@@ -78,7 +78,7 @@ describe('frontend foundation', () => {
 
   it('maps every role home and unknown roles to login', () => {
     expect(getRoleHome(USER_ROLE.SUPER_ADMIN)).toBe('/super-admin');
-    expect(getRoleHome(USER_ROLE.ORGANIZATION_ADMIN)).toBe('/admin');
+    expect(getRoleHome(USER_ROLE.ORGANIZATION_ADMIN)).toBe('/dashboard');
     expect(getRoleHome(USER_ROLE.CLIENT)).toBe('/client');
     expect(getRoleHome('unknown')).toBe('/login');
   });

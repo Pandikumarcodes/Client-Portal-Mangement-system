@@ -131,6 +131,27 @@ services, taxes, discounts, totals, PDFs, email delivery, recurring billing, aut
 status, reminders, accounting exports, deletion, and Client-user Invoice access are not
 implemented.
 
+The Organization Admin Dashboard is available at `/dashboard`. It is protected by the existing
+authentication restoration and Organization Admin role guard, appears as the first Organization
+Admin navigation item, and is the Organization Admin destination after login and root-route
+redirection. The existing `/admin` home remains available. Client and Super Admin users cannot
+access or see navigation for this tenant Dashboard.
+
+The Dashboard uses `GET /dashboard/organization` through the authenticated request utility and
+configured `VITE_API_BASE_URL`. It submits no body, query parameters, or `tenantId`. Its five
+sections show current-state counts for Clients, Projects, Milestones, Files, and Invoices. Links
+lead to the existing Client and Project lists; Milestones, Files, and Invoices remain
+Project-scoped and receive no top-level navigation.
+
+The page shows a clear loading state, treats an all-zero response as valid structured data, maps
+request failures to safe messages, and provides one retry action after an error. Requests are
+aborted during cleanup. Dashboard results stay in page memory only and are never persisted in
+localStorage, sessionStorage, or IndexedDB. There is no polling, background refresh, or caching.
+
+The Dashboard contains no charts, monetary totals, percentages, trends, comparison periods,
+overdue calculations, file-storage totals, recent activity, or reports. It does not invent Client
+dashboard behavior, and Super Admin dashboard functionality remains deferred.
+
 Deactivation is not deletion: inactive Client profiles remain stored and can be reactivated. The
 backend enforces tenant ownership from the authenticated session, and the frontend never sends
 `tenantId`. Creating a Client profile does not create a portal User account. Client invitations,
