@@ -29,10 +29,17 @@ const projectFileApi = vi.hoisted(() => ({
   updateProjectFile: vi.fn(),
   downloadProjectFile: vi.fn(),
 }));
+const invoiceApi = vi.hoisted(() => ({
+  listInvoices: vi.fn(),
+  getInvoice: vi.fn(),
+  createInvoice: vi.fn(),
+  updateInvoice: vi.fn(),
+}));
 vi.mock('./features/clients/client-api.js', () => clientApi);
 vi.mock('./features/projects/project-api.js', () => projectApi);
 vi.mock('./features/milestones/milestone-api.js', () => milestoneApi);
 vi.mock('./features/project-files/project-file-api.js', () => projectFileApi);
+vi.mock('./features/invoices/invoice-api.js', () => invoiceApi);
 import App from './App.jsx';
 
 const client = {
@@ -72,6 +79,19 @@ const projectFile = {
   sizeBytes: 120,
   description: null,
   status: 'active',
+  createdAt: '2026-07-02T00:00:00.000Z',
+  updatedAt: '2026-07-02T00:00:00.000Z',
+};
+const invoice = {
+  id: 'invoice-1',
+  projectId: 'project-1',
+  invoiceNumber: 'INV-1001',
+  amountCents: 125000,
+  currency: 'USD',
+  issueDate: '2026-08-01T00:00:00.000Z',
+  dueDate: '2026-08-31T00:00:00.000Z',
+  status: 'draft',
+  notes: null,
   createdAt: '2026-07-02T00:00:00.000Z',
   updatedAt: '2026-07-02T00:00:00.000Z',
 };
@@ -122,6 +142,14 @@ beforeEach(() => {
   projectFileApi.uploadProjectFile.mockResolvedValue(projectFile);
   projectFileApi.updateProjectFile.mockResolvedValue(projectFile);
   projectFileApi.downloadProjectFile.mockResolvedValue('proposal.pdf');
+  Object.values(invoiceApi).forEach((mock) => mock.mockReset());
+  invoiceApi.listInvoices.mockResolvedValue({
+    invoices: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
+  invoiceApi.getInvoice.mockResolvedValue(invoice);
+  invoiceApi.createInvoice.mockResolvedValue(invoice);
+  invoiceApi.updateInvoice.mockResolvedValue(invoice);
 });
 
 describe('application Project routes and navigation', () => {
@@ -255,6 +283,52 @@ describe('application Project routes and navigation', () => {
   it('uses the existing not-found page for unknown nested Project File routes', async () => {
     renderRoute(
       '/projects/project-1/files/file-1/unknown',
+      USER_ROLE.ORGANIZATION_ADMIN,
+    );
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
+
+  it.each([
+    ['/projects/project-1/invoices/new', 'Create Invoice'],
+    ['/projects/project-1/invoices/invoice-1', 'INV-1001'],
+    ['/projects/project-1/invoices/invoice-1/edit', 'Edit Invoice'],
+  ])('allows Organization Admin access to %s', async (path, heading) => {
+    renderRoute(path, USER_ROLE.ORGANIZATION_ADMIN);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+    });
+  });
+
+  it.each([USER_ROLE.CLIENT, USER_ROLE.SUPER_ADMIN])(
+    'redirects %s users away from tenant Invoice routes',
+    async (role) => {
+      renderRoute('/projects/project-1/invoices/new', role);
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
+    },
+  );
+
+  it('redirects unauthenticated users away from Invoice routes', async () => {
+    renderRoute('/projects/project-1/invoices/invoice-1', null, 'unauthenticated');
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+  });
+
+  it('adds no top-level Invoices navigation and preserves Projects and Clients', () => {
+    renderRoute('/admin', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(screen.queryByRole('link', { name: 'Invoices' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Clients' })).toBeInTheDocument();
+  });
+
+  it('does not interpret invoices/new as an Invoice ID', async () => {
+    renderRoute('/projects/project-1/invoices/new', USER_ROLE.ORGANIZATION_ADMIN);
+    await screen.findByRole('heading', { name: 'Create Invoice' });
+    expect(invoiceApi.getInvoice).not.toHaveBeenCalled();
+  });
+
+  it('uses not-found for unknown nested Invoice routes', async () => {
+    renderRoute(
+      '/projects/project-1/invoices/invoice-1/unknown',
       USER_ROLE.ORGANIZATION_ADMIN,
     );
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();

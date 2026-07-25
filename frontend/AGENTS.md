@@ -40,5 +40,17 @@
 - Do not add public URLs, hard deletion, or file replacement.
 - Project File archiving is a metadata status change.
 - Do not add previews, versioning, Client access, or cloud SDKs without an approved prompt.
-- Do not add Project or Milestone invoice UI without an approved prompt.
+- Invoice routes are nested beneath Projects and are Organization Admin-only.
+- Do not add a top-level Invoices navigation item.
+- Route Invoice operations through the authenticated API utility.
+- Never send `tenantId`, and never put `projectId` in an Invoice request body.
+- Keep integer `amountCents` as the backend money representation and convert user-entered USD
+  decimal strings deterministically. Do not store floating-point dollar values as API state.
+- USD is the only approved MVP Invoice currency.
+- Do not calculate Invoice overdue state.
+- Do not store Invoice records or form drafts in browser storage.
+- Paid is a manual record status, not evidence of an integrated payment. Void is a status change,
+  not deletion.
+- Do not add Invoice payments, line items, taxes, PDF generation, email delivery, or Client access
+  without an approved prompt.
 - Resolve Client labels from a shared Client collection; do not create per-Project Client requests.

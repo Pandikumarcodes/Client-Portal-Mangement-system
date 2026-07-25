@@ -23,6 +23,9 @@ import { MilestoneEditPage } from './pages/milestone-edit-page.jsx';
 import { ProjectFileUploadPage } from './pages/project-file-upload-page.jsx';
 import { ProjectFileDetailPage } from './pages/project-file-detail-page.jsx';
 import { ProjectFileEditPage } from './pages/project-file-edit-page.jsx';
+import { InvoiceCreatePage } from './pages/invoice-create-page.jsx';
+import { InvoiceDetailPage } from './pages/invoice-detail-page.jsx';
+import { InvoiceEditPage } from './pages/invoice-edit-page.jsx';
 import { AppNavigation } from './components/app-navigation.jsx';
 
 function PublicRoute() {
@@ -51,6 +54,15 @@ export default function App() {
         <Route
           path="/projects/:projectId/files/:fileId"
           element={<ProjectFileDetailPage />}
+        />
+        <Route path="/projects/:projectId/invoices/new" element={<InvoiceCreatePage />} />
+        <Route
+          path="/projects/:projectId/invoices/:invoiceId/edit"
+          element={<InvoiceEditPage />}
+        />
+        <Route
+          path="/projects/:projectId/invoices/:invoiceId"
+          element={<InvoiceDetailPage />}
         />
         <Route path="/projects/:projectId/milestones/new" element={<MilestoneCreatePage />} />
         <Route

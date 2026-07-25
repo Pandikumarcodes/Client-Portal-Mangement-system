@@ -404,11 +404,71 @@ button:disabled {
   margin-top: 2rem;
   padding-top: 2rem;
 }
+.invoice-section {
+  border-top: 1px solid #d8deea;
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
 .milestone-section-header {
   align-items: center;
   display: flex;
   gap: 1.5rem;
   justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.resource-section-header {
+  align-items: center;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.resource-section-header h2 {
+  color: #263653;
+  margin: 0 0 0.35rem;
+}
+.resource-section-header p {
+  color: #66738a;
+  margin: 0;
+}
+.resource-toolbar {
+  align-items: flex-end;
+}
+.invoice-number-cell,
+.long-invoice-number {
+  overflow-wrap: anywhere;
+}
+.invoice-number-cell {
+  font-weight: 700;
+  max-width: 220px;
+}
+.invoice-table {
+  min-width: 1020px;
+}
+.invoice-section .client-table-wrap {
+  overflow-x: auto;
+}
+.status-invoice-draft {
+  background: #edf0f5;
+  color: #4d596d;
+}
+.status-invoice-sent {
+  background: #e8efff;
+  color: #2547ad;
+}
+.status-invoice-paid {
+  background: #e7f6ec;
+  color: #176a38;
+}
+.status-invoice-void {
+  background: #fff0f1;
+  color: #8f2635;
+}
+.invoice-form + .secondary-link {
+  margin-top: 0;
+}
+.invoice-form .field-help {
+  margin-top: -0.6rem;
   margin-bottom: 1rem;
 }
 .milestone-section-header h2 {
@@ -614,6 +674,13 @@ button:disabled {
   .milestone-section-header {
     align-items: stretch;
     flex-direction: column;
+  }
+  .resource-section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .resource-section-header .primary-link {
+    justify-content: center;
   }
   .milestone-section-header .primary-link {
     justify-content: center;

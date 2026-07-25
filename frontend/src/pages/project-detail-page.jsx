@@ -10,6 +10,7 @@ import { getProject } from '../features/projects/project-api.js';
 import { ProjectStatusBadge } from '../features/projects/project-status-badge.jsx';
 import { MilestoneList } from '../features/milestones/milestone-list.jsx';
 import { ProjectFileList } from '../features/project-files/project-file-list.jsx';
+import { InvoiceList } from '../features/invoices/invoice-list.jsx';
 
 export function ProjectDetailPage() {
   const { projectId } = useParams();
@@ -97,6 +98,7 @@ export function ProjectDetailPage() {
       </div>
       <MilestoneList projectId={project.id} />
       <ProjectFileList projectId={project.id} />
+      <InvoiceList projectId={project.id} />
       <Link className="secondary-link back-link" to="/projects">Back to Projects</Link>
     </section>
   );

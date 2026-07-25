@@ -8,6 +8,7 @@ const api = vi.hoisted(() => ({
   getProject: vi.fn(),
   listMilestones: vi.fn(),
   listProjectFiles: vi.fn(),
+  listInvoices: vi.fn(),
 }));
 vi.mock('../features/clients/client-api.js', () => ({ listClients: api.listClients }));
 vi.mock('../features/projects/project-api.js', () => ({ getProject: api.getProject }));
@@ -17,6 +18,9 @@ vi.mock('../features/milestones/milestone-api.js', () => ({
 vi.mock('../features/project-files/project-file-api.js', () => ({
   listProjectFiles: api.listProjectFiles,
   downloadProjectFile: vi.fn(),
+}));
+vi.mock('../features/invoices/invoice-api.js', () => ({
+  listInvoices: api.listInvoices,
 }));
 import { ProjectDetailPage } from './project-detail-page.jsx';
 
@@ -60,6 +64,11 @@ beforeEach(() => {
     files: [],
     pagination: { page: 1, total: 0, totalPages: 0 },
   });
+  api.listInvoices.mockReset();
+  api.listInvoices.mockResolvedValue({
+    invoices: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
 });
 
 describe('ProjectDetailPage', () => {
@@ -78,7 +87,7 @@ describe('ProjectDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Back to Projects' })).toHaveAttribute('href', '/projects');
   });
 
-  it('integrates Milestones and Files without rendering invoices or deletion', async () => {
+  it('integrates Milestones, Files, and Invoices without deletion', async () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Website Redesign' });
     expect(screen.getByRole('heading', { name: 'Milestones' })).toBeInTheDocument();
@@ -91,7 +100,11 @@ describe('ProjectDetailPage', () => {
       'href',
       '/projects/project-1/files/new',
     );
-    expect(screen.queryByText(/invoices/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Invoices' })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Create Invoice' })[0]).toHaveAttribute(
+      'href',
+      '/projects/project-1/invoices/new',
+    );
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
   });
 

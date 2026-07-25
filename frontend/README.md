@@ -93,6 +93,44 @@ interface.
 Public and signed links, deletion, file replacement, versioning, previews, thumbnails, Client-user
 access, direct storage uploads, and cloud SDKs are not implemented.
 
+Organization Admin Project Invoices are integrated into `/projects/:projectId`. The Project detail
+screen lists Invoice records, filters by one status, and uses backend pagination with 20 records
+per page. Invoices have no top-level navigation item and use these nested routes:
+
+- `/projects/:projectId/invoices/new` — create an Invoice
+- `/projects/:projectId/invoices/:invoiceId` — view Invoice details
+- `/projects/:projectId/invoices/:invoiceId/edit` — edit an Invoice and manually change status
+
+Every Invoice route requires an authenticated Organization Admin. Client and Super Admin users
+cannot access these tenant screens. Supported fields are an Invoice number, amount, required issue
+and due dates, and optional notes; status is available only while editing. Status values are
+`draft`, `sent`, `paid`, and `void`. New records use the backend's `draft` default. Paid is a manual
+record status and does not process a payment. Void keeps the Invoice record and is not deletion.
+Invoice deletion is unavailable.
+
+The backend money representation is integer `amountCents`. The controlled Amount (USD) input keeps
+the user's decimal text while editing and converts it deterministically into cents on submission;
+for example, `1250.00` becomes `125000`. It accepts at most two fractional digits and values from
+one cent through 1,000,000,000 cents. API state is not converted permanently to floating-point
+dollars. Amount display uses `en-US` USD currency formatting. USD is the only supported currency,
+there is no currency selector, and no conversion is performed.
+
+Issue and due dates use native date inputs and are sent as UTC-midnight ISO values. Both are
+required, past dates are allowed, and the due date may equal but cannot precede the issue date.
+No overdue state is calculated. Blank notes are omitted during creation; clearing notes during an
+edit sends `null`.
+
+Invoice requests reuse `VITE_API_BASE_URL`, the authenticated native Fetch utility, in-memory
+access tokens, refresh behavior, and safe error handling. They use nested Project endpoints,
+never send `tenantId`, never put `projectId` in request bodies, and do not store Invoice records or
+drafts in browser storage. Status filtering omits the blank All statuses value and resets the page
+to one.
+
+Payment processing and providers, payment links or transactions, refunds, line items, products,
+services, taxes, discounts, totals, PDFs, email delivery, recurring billing, automatic overdue
+status, reminders, accounting exports, deletion, and Client-user Invoice access are not
+implemented.
+
 Deactivation is not deletion: inactive Client profiles remain stored and can be reactivated. The
 backend enforces tenant ownership from the authenticated session, and the frontend never sends
 `tenantId`. Creating a Client profile does not create a portal User account. Client invitations,
