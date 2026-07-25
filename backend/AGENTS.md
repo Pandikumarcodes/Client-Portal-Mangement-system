@@ -55,6 +55,16 @@
   authentication.
 - Client records are always tenant scoped; future Client queries must include `tenantId` from
   `request.auth.tenantId`, never request body or query input.
+- Dashboard count queries must always include `tenantId`, and dashboard tenant context must come only
+  from `request.auth.tenantId`; dashboard responses must not expose tenantId. Do not use
+  `estimatedDocumentCount` or load full records for simple counts.
+- Do not calculate dashboard percentages, trends, revenue, outstanding amounts, overdue state, or
+  file-size totals without an approved prompt. Do not add a Dashboard collection or cache private
+  dashboard data without an approved architecture.
+- Do not accept dashboard date ranges or arbitrary dashboard filters without an approved prompt.
+- Do not invent Client ownership relationships for dashboards. A Client dashboard query requires both
+  tenantId and a securely resolved Client profile ID. Super Admin dashboard behavior needs a separate
+  approved prompt.
 - Every Project repository query must include `tenantId`; never use `findById` alone for Project
   records.
 - Project tenant IDs come only from `request.auth.tenantId`, and Project HTTP responses must never

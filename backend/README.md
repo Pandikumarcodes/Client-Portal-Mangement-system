@@ -526,3 +526,25 @@ Organization onboarding beyond registration, audit logging, persistent refresh s
 and Invoice frontend screens, Client portal Project/File/Invoice access, milestones, and the other
 deferred Project features described above remain unimplemented. Never commit `.env`; it can contain
 database credentials, JWT secrets, and other environment-specific configuration.
+
+## Organization dashboard
+
+Organization Admins can read `GET /api/v1/dashboard/organization`. The route requires authentication,
+Organization Admin authorization, and tenant context from `request.auth.tenantId`. It returns current
+counts for Clients, Projects, Milestones, Project Files, and Invoices, including approved status
+breakdowns. Pagination, date ranges, trends, percentages, monetary totals, overdue calculations, and
+file-size totals are not included.
+
+The route is read-only and returns safe numeric DTOs without `tenantId` or raw records. Missing status
+groups return zero. The response sections are `clients`, `projects`, `milestones`, `files`, and
+`invoices`; stored `on_hold` and `in_progress` statuses are exposed only through the approved
+`onHold` and `inProgress` DTO keys. The repository uses explicit tenant-scoped `countDocuments`
+queries rather than loading or populating documents. There is no Milestone module yet, so milestone
+counts are zero.
+
+Missing or invalid authentication returns the existing safe `AUTHENTICATION_REQUIRED` error, while
+Client and Super Admin roles receive the existing safe `FORBIDDEN` error. Only GET is registered;
+POST, PATCH, PUT, and DELETE dashboard operations are unavailable. Client dashboard support is
+deferred because the current optional Client `userId` is reserved for a future account-linking
+workflow and does not yet establish a secure authenticated ownership mapping. Super Admin dashboard
+support is deferred to Prompt 30C. No dashboard frontend is implemented in Prompt 30A.

@@ -53,6 +53,27 @@ beforeEach(() => {
 });
 
 describe('createApp', () => {
+  it('registers only the protected read-only Organization dashboard route', async () => {
+    const getResponse = await request(createApp()).get('/api/v1/dashboard/organization');
+    const clientResponse = await request(createApp()).get('/api/v1/dashboard/client');
+    const unsupportedResponses = await Promise.all(
+      ['post', 'patch', 'delete'].map((method) =>
+        request(createApp())[method]('/api/v1/dashboard/organization'),
+      ),
+    );
+
+    expect(getResponse.status).toBe(401);
+    expect(getResponse.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+    expect(getResponse.headers['x-request-id']).toEqual(expect.any(String));
+    expect(getResponse.headers).not.toHaveProperty('x-powered-by');
+    expect(clientResponse.status).toBe(404);
+    expect(clientResponse.body.error.code).toBe('RESOURCE_NOT_FOUND');
+    for (const response of unsupportedResponses) {
+      expect(response.status).toBe(404);
+      expect(response.body.error.code).toBe('RESOURCE_NOT_FOUND');
+    }
+  });
+
   it('registers protected nested Invoice routes without deletion, payments, PDFs, or email', async () => {
     const listResponse = await request(createApp()).get(
       '/api/v1/projects/1234567890abcdef12345678/invoices',

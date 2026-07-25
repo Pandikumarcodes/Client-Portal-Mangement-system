@@ -14,6 +14,7 @@ import { errorHandler } from './middlewares/error-handler.js';
 import { notFoundHandler } from './middlewares/not-found.js';
 import authRouter from './modules/auth/auth.routes.js';
 import clientRouter from './modules/clients/client.routes.js';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { invoiceRouter } from './modules/invoices/invoice.routes.js';
 import { projectFileRouter } from './modules/project-files/project-file.routes.js';
 import { projectRouter } from './modules/projects/project.routes.js';
@@ -48,6 +49,7 @@ export function createApp() {
   app.use('/api/v1/projects', projectRouter);
   app.use('/api/v1/projects/:projectId/files', projectFileRouter);
   app.use('/api/v1/projects/:projectId/invoices', invoiceRouter);
+  app.use('/api/v1/dashboard', dashboardRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 
