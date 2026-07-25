@@ -55,6 +55,16 @@
   authentication.
 - Client records are always tenant scoped; future Client queries must include `tenantId` from
   `request.auth.tenantId`, never request body or query input.
+- Every Project repository query must include `tenantId`; never use `findById` alone for Project
+  records.
+- Project tenant IDs come only from `request.auth.tenantId`, and Project HTTP responses must never
+  expose `tenantId`.
+- Verify Client ownership with both `tenantId` and `clientId` before Project creation or Client
+  reassignment.
+- Project routes must apply authentication, Organization Admin role authorization, and tenant
+  context middleware in that order.
+- Archive Projects through a status update, not deletion. Do not add milestones or progress without
+  an approved prompt.
 - Client profiles and User authentication identities are separate concepts. Client models must not
   perform HTTP or authentication workflows, and routes must not access models directly.
 - Never trust tenant IDs from client input. Tenant-scoped repositories must use

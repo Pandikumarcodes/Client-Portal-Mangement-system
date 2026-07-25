@@ -51,6 +51,27 @@ beforeEach(() => {
 });
 
 describe('createApp', () => {
+  it('registers protected Project routes without implementing deletion', async () => {
+    const listResponse = await request(createApp()).get('/api/v1/projects');
+    const createResponse = await request(createApp()).post('/api/v1/projects').send({});
+    const deleteResponse = await request(createApp()).delete(
+      '/api/v1/projects/1234567890abcdef12345678',
+    );
+
+    expect(listResponse.status).toBe(401);
+    expect(listResponse.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+    expect(createResponse.status).toBe(401);
+    expect(createResponse.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+    expect(deleteResponse.status).toBe(404);
+    expect(deleteResponse.body.error.code).toBe('RESOURCE_NOT_FOUND');
+  });
+
+  it('keeps the existing Client routes registered', async () => {
+    const response = await request(createApp()).get('/api/v1/clients');
+    expect(response.status).toBe(401);
+    expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+  });
+
   it('registers authentication and lifecycle endpoints without adding unsupported routes', async () => {
     const registerResponse = await request(createApp())
       .post('/api/v1/auth/register')

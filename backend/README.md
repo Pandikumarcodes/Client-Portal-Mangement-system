@@ -303,7 +303,7 @@ Frontend flow: register or login, keep the access token in memory, send the refr
 `credentials: 'include'`, call `/refresh` after reload, send the access token in the Authorization
 header, and call `/logout` while clearing frontend state.
 
-Persistent refresh-session revocation, client/project APIs, and frontend code remain deferred.
+Persistent refresh-session revocation and frontend authentication screens remain deferred.
 
 ## Client profiles
 
@@ -312,9 +312,42 @@ identities. Each Client requires an Organization `tenantId` and stores `firstNam
 `email`, optional `companyName`, `status`, and an optional `userId` for future portal-account linking.
 Email uniqueness is scoped to each Organization, so the same address may exist in different tenants.
 
-Client APIs, services, invitations, account linking, frontend screens, projects, and invoices are not
-implemented. Future Client queries must use `request.auth.tenantId`; tenant ownership must never come
-from request body or query input.
+Client create, list, get, and update APIs are available to authenticated Organization Admin users.
+Invitations, account linking, frontend screens, and invoices are not implemented. Client queries use
+`request.auth.tenantId`; tenant ownership never comes from request body or query input.
+
+## Projects
+
+Projects are minimal tenant-owned delivery records assigned to one existing Client profile:
+
+| Field         | Values or constraint                                            |
+| ------------- | --------------------------------------------------------------- |
+| `clientId`    | Required Client ObjectId owned by the same Organization         |
+| `name`        | Required trimmed string, 2-150 characters                       |
+| `description` | Optional trimmed string, at most 2000 characters                |
+| `status`      | `active`, `on_hold`, `completed`, or `archived`; default active |
+
+The authenticated Organization's tenant ID comes only from `request.auth.tenantId` and is never
+accepted from request input or returned in Project responses. Before Project creation or Client
+reassignment, the service verifies the Client with both `tenantId` and `clientId`. Missing and
+cross-tenant Clients are intentionally indistinguishable.
+
+Authenticated Organization Admin users can use:
+
+- `POST /api/v1/projects` to create a Project for an existing tenant-owned Client.
+- `GET /api/v1/projects` to list Projects newest first.
+- `GET /api/v1/projects/:projectId` to get one tenant-scoped Project.
+- `PATCH /api/v1/projects/:projectId` to update its Client, name, description, or status.
+
+List requests support `page` (default 1), `limit` (default 20, maximum 50), optional `status`, and
+optional `clientId`. Text search and sorting controls are not supported. There is no DELETE endpoint;
+archiving uses the normal status update and archived Projects remain stored. Project names are not
+unique.
+
+Safe Project-route errors include `PROJECT_NOT_FOUND`, `CLIENT_NOT_FOUND`, `VALIDATION_ERROR`,
+`AUTHENTICATION_REQUIRED`, and `FORBIDDEN`. Project frontend screens, Client portal Project access,
+milestones, files, invoices, dates, budgets, progress, comments, and activity feeds are not
+implemented.
 
 ## Structured logging and request correlation
 
@@ -407,17 +440,13 @@ Run the commands in order when troubleshooting:
 
 ## Current status
 
-The project currently implements the backend foundation, centralized environment validation, DNS
-diagnostics, the Mongoose connection lifecycle, Express application composition, one operational
-health endpoint, graceful HTTP process lifecycle, centralized safe HTTP error handling, and the
-Organization tenant-root persistence model.
+The backend implements centralized configuration, database and HTTP lifecycle management, health
+checks, safe errors and validation, structured logging and request correlation, authentication
+lifecycle endpoints, tenant authorization, Client management APIs, and the minimal Project API.
+Organization is the tenant root, and tenant-owned Client and Project operations use verified
+authentication context.
 
-This increment intentionally contains no authentication, owner relationships, repositories,
-services, controllers, or business routes. Reusable request-validation infrastructure exists, but
-Organization request schemas, APIs, onboarding, and audit logging remain deferred. Structured
-operational logging and request correlation are implemented. User persistence now defines the
-initial identity and membership invariants, while User APIs, registration, login, ownership
-workflows, password-security workflows, and token lifecycle workflows remain deferred. Reusable
-password hashing, JWT token, registration, and login service boundaries are implemented. HTTP
-controllers, routes, cookies, and authentication middleware remain deferred. Never commit `.env`; it
-can contain database credentials, JWT secrets, and other environment-specific configuration.
+Organization onboarding beyond registration, audit logging, persistent refresh sessions, Project
+frontend screens, Client portal Project access, milestones, files, invoices, and the other deferred
+Project features described above remain unimplemented. Never commit `.env`; it can contain database
+credentials, JWT secrets, and other environment-specific configuration.
