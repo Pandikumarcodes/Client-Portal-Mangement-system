@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { AuthContext } from './features/auth/auth-context.js';
 import { USER_ROLE } from './features/auth/auth.constants.js';
@@ -16,8 +16,15 @@ const projectApi = vi.hoisted(() => ({
   createProject: vi.fn(),
   updateProject: vi.fn(),
 }));
+const milestoneApi = vi.hoisted(() => ({
+  listMilestones: vi.fn(),
+  getMilestone: vi.fn(),
+  createMilestone: vi.fn(),
+  updateMilestone: vi.fn(),
+}));
 vi.mock('./features/clients/client-api.js', () => clientApi);
 vi.mock('./features/projects/project-api.js', () => projectApi);
+vi.mock('./features/milestones/milestone-api.js', () => milestoneApi);
 import App from './App.jsx';
 
 const client = {
@@ -38,6 +45,16 @@ const project = {
   status: 'active',
   createdAt: '2026-07-01T00:00:00.000Z',
   updatedAt: '2026-07-01T00:00:00.000Z',
+};
+const milestone = {
+  id: 'milestone-1',
+  projectId: 'project-1',
+  title: 'Design approval',
+  description: null,
+  dueDate: null,
+  status: 'pending',
+  createdAt: '2026-07-02T00:00:00.000Z',
+  updatedAt: '2026-07-02T00:00:00.000Z',
 };
 
 function renderRoute(path, role, status = 'authenticated') {
@@ -69,6 +86,14 @@ beforeEach(() => {
     pagination: { page: 1, total: 0, totalPages: 0 },
   });
   projectApi.getProject.mockResolvedValue(project);
+  Object.values(milestoneApi).forEach((mock) => mock.mockReset());
+  milestoneApi.listMilestones.mockResolvedValue({
+    milestones: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
+  milestoneApi.getMilestone.mockResolvedValue(milestone);
+  milestoneApi.createMilestone.mockResolvedValue(milestone);
+  milestoneApi.updateMilestone.mockResolvedValue(milestone);
 });
 
 describe('application Project routes and navigation', () => {
@@ -116,6 +141,46 @@ describe('application Project routes and navigation', () => {
 
   it('keeps unknown Project routes on the existing not-found page', async () => {
     renderRoute('/projects/project-1/unknown', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
+
+  it.each([
+    ['/projects/project-1/milestones/new', 'Create Milestone'],
+    ['/projects/project-1/milestones/milestone-1', 'Design approval'],
+    ['/projects/project-1/milestones/milestone-1/edit', 'Edit Milestone'],
+  ])('allows Organization Admin access to %s', async (path, heading) => {
+    renderRoute(path, USER_ROLE.ORGANIZATION_ADMIN);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+    });
+  });
+
+  it.each([USER_ROLE.CLIENT, USER_ROLE.SUPER_ADMIN])(
+    'redirects %s users away from tenant Milestone routes',
+    async (role) => {
+      renderRoute('/projects/project-1/milestones/new', role);
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
+    },
+  );
+
+  it('redirects unauthenticated users away from Milestone routes', async () => {
+    renderRoute('/projects/project-1/milestones/milestone-1', null, 'unauthenticated');
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+  });
+
+  it('does not add top-level Milestones navigation', () => {
+    renderRoute('/admin', USER_ROLE.ORGANIZATION_ADMIN);
+    expect(screen.queryByRole('link', { name: 'Milestones' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Clients' })).toBeInTheDocument();
+  });
+
+  it('uses the not-found page for unknown nested Milestone routes', async () => {
+    renderRoute(
+      '/projects/project-1/milestones/milestone-1/unknown',
+      USER_ROLE.ORGANIZATION_ADMIN,
+    );
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
   });
 });

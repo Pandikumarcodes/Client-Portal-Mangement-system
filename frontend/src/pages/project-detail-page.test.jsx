@@ -3,9 +3,16 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { AuthContext } from '../features/auth/auth-context.js';
 
-const api = vi.hoisted(() => ({ listClients: vi.fn(), getProject: vi.fn() }));
+const api = vi.hoisted(() => ({
+  listClients: vi.fn(),
+  getProject: vi.fn(),
+  listMilestones: vi.fn(),
+}));
 vi.mock('../features/clients/client-api.js', () => ({ listClients: api.listClients }));
 vi.mock('../features/projects/project-api.js', () => ({ getProject: api.getProject }));
+vi.mock('../features/milestones/milestone-api.js', () => ({
+  listMilestones: api.listMilestones,
+}));
 import { ProjectDetailPage } from './project-detail-page.jsx';
 
 const project = {
@@ -36,8 +43,13 @@ function renderPage() {
 beforeEach(() => {
   api.getProject.mockReset();
   api.listClients.mockReset();
+  api.listMilestones.mockReset();
   api.getProject.mockResolvedValue(project);
   api.listClients.mockResolvedValue({ clients: [client], pagination: { totalPages: 1 } });
+  api.listMilestones.mockResolvedValue({
+    milestones: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
 });
 
 describe('ProjectDetailPage', () => {
@@ -56,10 +68,14 @@ describe('ProjectDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Back to Projects' })).toHaveAttribute('href', '/projects');
   });
 
-  it('does not render deferred sections or deletion', async () => {
+  it('integrates Milestones without rendering other deferred sections or deletion', async () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Website Redesign' });
-    expect(screen.queryByText(/milestones/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Milestones' })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Add Milestone' })[0]).toHaveAttribute(
+      'href',
+      '/projects/project-1/milestones/new',
+    );
     expect(screen.queryByText(/files/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/invoices/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();

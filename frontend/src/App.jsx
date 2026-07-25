@@ -17,6 +17,9 @@ import { ProjectListPage } from './pages/project-list-page.jsx';
 import { ProjectCreatePage } from './pages/project-create-page.jsx';
 import { ProjectDetailPage } from './pages/project-detail-page.jsx';
 import { ProjectEditPage } from './pages/project-edit-page.jsx';
+import { MilestoneCreatePage } from './pages/milestone-create-page.jsx';
+import { MilestoneDetailPage } from './pages/milestone-detail-page.jsx';
+import { MilestoneEditPage } from './pages/milestone-edit-page.jsx';
 import { AppNavigation } from './components/app-navigation.jsx';
 
 function PublicRoute() {
@@ -37,6 +40,15 @@ export default function App() {
         <Route path="/admin/clients/:clientId" element={<ClientDetailPage />} />
         <Route path="/projects" element={<ProjectListPage />} />
         <Route path="/projects/new" element={<ProjectCreatePage />} />
+        <Route path="/projects/:projectId/milestones/new" element={<MilestoneCreatePage />} />
+        <Route
+          path="/projects/:projectId/milestones/:milestoneId"
+          element={<MilestoneDetailPage />}
+        />
+        <Route
+          path="/projects/:projectId/milestones/:milestoneId/edit"
+          element={<MilestoneEditPage />}
+        />
         <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
         <Route path="/projects/:projectId/edit" element={<ProjectEditPage />} />
       </Route>

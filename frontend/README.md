@@ -38,9 +38,30 @@ per-row Client requests.
 
 The Project API uses the same `VITE_API_BASE_URL` configuration and authenticated native Fetch
 layer as the rest of the frontend. It never sends `tenantId`, and Project records are not stored in
-browser storage. Project deletion is unsupported; archiving is a status update. Milestones, files,
-invoices, dates, budgets, progress, team members, and Client-user Project access are not
-implemented.
+browser storage. Project deletion is unsupported; archiving is a status update.
+
+Organization Admin Project Milestones are integrated into `/projects/:projectId`. The Project
+detail screen lists and paginates Milestones 20 at a time, supports one status filter, and links to:
+
+- `/projects/:projectId/milestones/new` — create a Milestone
+- `/projects/:projectId/milestones/:milestoneId` — view Milestone details
+- `/projects/:projectId/milestones/:milestoneId/edit` — edit a Milestone
+
+These routes require an authenticated Organization Admin and are not exposed to Client or Super
+Admin users. There is no top-level Milestones navigation item. Supported fields are title,
+optional description, optional due date, and—during editing—status. Status values are `pending`,
+`in_progress`, and `completed`; creation leaves status to the backend's `pending` default.
+
+Due dates use the native date input. A selected `YYYY-MM-DD` date is sent as UTC midnight, while an
+API ISO value is displayed using its validated calendar-date portion so it does not visibly shift
+with the browser timezone. Past dates are allowed. On edit, clearing description or due date sends
+`null`; blank optional values are omitted during creation.
+
+Milestone requests reuse `VITE_API_BASE_URL`, the authenticated API utility, in-memory access
+tokens, refresh behavior, and safe error responses. They never send `tenantId` or place
+`projectId` in request bodies, and Milestone records are not stored in browser storage. Milestone
+deletion is unavailable. Tasks, assignments, comments, files, reminders, progress, invoices, and
+Client-user Milestone access are not implemented.
 
 Deactivation is not deletion: inactive Client profiles remain stored and can be reactivated. The
 backend enforces tenant ownership from the authenticated session, and the frontend never sends

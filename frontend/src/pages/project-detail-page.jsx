@@ -8,6 +8,7 @@ import { createClientLabelMap } from '../features/projects/project-client-utils.
 import { getProjectErrorMessage } from '../features/projects/get-project-error-message.js';
 import { getProject } from '../features/projects/project-api.js';
 import { ProjectStatusBadge } from '../features/projects/project-status-badge.jsx';
+import { MilestoneList } from '../features/milestones/milestone-list.jsx';
 
 export function ProjectDetailPage() {
   const { projectId } = useParams();
@@ -93,6 +94,7 @@ export function ProjectDetailPage() {
           <Detail wide label="Description" value={project.description || 'No description provided.'} />
         </dl>
       </div>
+      <MilestoneList projectId={project.id} />
       <Link className="secondary-link back-link" to="/projects">Back to Projects</Link>
     </section>
   );

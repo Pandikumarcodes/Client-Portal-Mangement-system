@@ -22,6 +22,12 @@
   request utility.
 - Do not store Project records or tokens in browser storage.
 - Do not add Project deletion. Archive Projects through a status update.
-- Do not add Project milestones, files, invoices, dates, budgets, or progress without an approved
-  prompt.
+- Milestone routes are nested under Projects and are Organization Admin-only.
+- Do not add a top-level Milestones navigation item.
+- Route Milestone operations through the authenticated API utility; never send `tenantId` or put
+  `projectId` in a Milestone request body.
+- Do not store Milestone records in browser storage.
+- Milestone completion is a status update. Do not add Milestone deletion or task-management
+  features without an approved prompt.
+- Do not add Project or Milestone file or invoice UI without an approved prompt.
 - Resolve Client labels from a shared Client collection; do not create per-Project Client requests.

@@ -350,6 +350,18 @@ button:disabled {
   background: #edf0f5;
   color: #4d596d;
 }
+.status-milestone-pending {
+  background: #edf0f5;
+  color: #4d596d;
+}
+.status-milestone-in_progress {
+  background: #fff3d8;
+  color: #7a4c00;
+}
+.status-milestone-completed {
+  background: #e7f6ec;
+  color: #176a38;
+}
 .project-toolbar {
   align-items: flex-end;
   flex-wrap: wrap;
@@ -373,6 +385,34 @@ button:disabled {
 .detail-wide dd {
   line-height: 1.6;
   white-space: pre-wrap;
+}
+.milestone-section {
+  border-top: 1px solid #d8deea;
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+.milestone-section-header {
+  align-items: center;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.milestone-section-header h2 {
+  color: #263653;
+  margin: 0 0 0.35rem;
+}
+.milestone-section-header p {
+  color: #66738a;
+  margin: 0;
+}
+.milestone-toolbar {
+  align-items: flex-end;
+}
+.milestone-title-cell {
+  font-weight: 700;
+  max-width: 240px;
+  overflow-wrap: anywhere;
 }
 .pagination,
 .button-row {
@@ -518,5 +558,12 @@ button:disabled {
   .project-toolbar > div,
   .project-toolbar select {
     width: 100%;
+  }
+  .milestone-section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .milestone-section-header .primary-link {
+    justify-content: center;
   }
 }
