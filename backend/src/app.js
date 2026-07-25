@@ -18,6 +18,7 @@ import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { invoiceRouter } from './modules/invoices/invoice.routes.js';
 import { projectFileRouter } from './modules/project-files/project-file.routes.js';
 import { projectRouter } from './modules/projects/project.routes.js';
+import { superAdminRouter } from './modules/super-admin/super-admin.routes.js';
 
 const httpLogger = createHttpLogger({
   loggerInstance: logger,
@@ -50,6 +51,7 @@ export function createApp() {
   app.use('/api/v1/projects/:projectId/files', projectFileRouter);
   app.use('/api/v1/projects/:projectId/invoices', invoiceRouter);
   app.use('/api/v1/dashboard', dashboardRouter);
+  app.use('/api/v1/super-admin', superAdminRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 

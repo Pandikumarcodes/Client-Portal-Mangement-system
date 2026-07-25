@@ -9,6 +9,8 @@ import { RegisterPage } from './pages/register-page.jsx';
 import { AdminHomePage } from './pages/admin-home-page.jsx';
 import { ClientHomePage } from './pages/client-home-page.jsx';
 import { SuperAdminHomePage } from './pages/super-admin-home-page.jsx';
+import { SuperAdminOrganizationsPage } from './pages/super-admin-organizations-page.jsx';
+import { SuperAdminOrganizationDetailPage } from './pages/super-admin-organization-detail-page.jsx';
 import { NotFoundPage } from './pages/not-found-page.jsx';
 import { ClientListPage } from './pages/client-list-page.jsx';
 import { ClientCreatePage } from './pages/client-create-page.jsx';
@@ -79,7 +81,14 @@ export default function App() {
         <Route path="/projects/:projectId/edit" element={<ProjectEditPage />} />
       </Route>
       <Route element={<RoleRoute allowedRoles={[USER_ROLE.CLIENT]} />}><Route path="/client" element={<ClientHomePage />} /></Route>
-      <Route element={<RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]} />}><Route path="/super-admin" element={<SuperAdminHomePage />} /></Route>
+      <Route element={<RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]} />}>
+        <Route path="/super-admin" element={<SuperAdminHomePage />} />
+        <Route path="/super-admin/organizations" element={<SuperAdminOrganizationsPage />} />
+        <Route
+          path="/super-admin/organizations/:organizationId"
+          element={<SuperAdminOrganizationDetailPage />}
+        />
+      </Route>
     </Route>
     <Route path="/" element={<RootRedirect />} />
     <Route path="*" element={<NotFoundPage />} />

@@ -238,6 +238,7 @@ describe('authentication services', () => {
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'ORGANIZATION_SUSPENDED',
+      message: 'The organization is suspended.',
     });
   });
 

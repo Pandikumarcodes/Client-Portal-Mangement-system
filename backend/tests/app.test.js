@@ -53,6 +53,35 @@ beforeEach(() => {
 });
 
 describe('createApp', () => {
+  it('registers only the approved protected Super Admin platform routes', async () => {
+    const organizationId = 'abcdefabcdefabcdefabcdef';
+    const protectedResponses = await Promise.all([
+      request(createApp()).get('/api/v1/super-admin/overview'),
+      request(createApp()).get('/api/v1/super-admin/organizations'),
+      request(createApp()).get(`/api/v1/super-admin/organizations/${organizationId}`),
+      request(createApp())
+        .patch(`/api/v1/super-admin/organizations/${organizationId}/status`)
+        .send({ status: 'suspended' }),
+      request(createApp()).get(`/api/v1/super-admin/organizations/${organizationId}/users`),
+    ]);
+    for (const response of protectedResponses) {
+      expect(response.status).toBe(401);
+      expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+      expect(response.headers['x-request-id']).toEqual(expect.any(String));
+      expect(response.headers).not.toHaveProperty('x-powered-by');
+    }
+
+    const absentResponses = await Promise.all([
+      request(createApp()).post('/api/v1/super-admin/organizations'),
+      request(createApp()).delete(`/api/v1/super-admin/organizations/${organizationId}`),
+      request(createApp()).post(`/api/v1/super-admin/organizations/${organizationId}/impersonate`),
+    ]);
+    for (const response of absentResponses) {
+      expect(response.status).toBe(404);
+      expect(response.body.error.code).toBe('RESOURCE_NOT_FOUND');
+    }
+  });
+
   it('registers only the protected read-only Organization dashboard route', async () => {
     const getResponse = await request(createApp()).get('/api/v1/dashboard/organization');
     const clientResponse = await request(createApp()).get('/api/v1/dashboard/client');

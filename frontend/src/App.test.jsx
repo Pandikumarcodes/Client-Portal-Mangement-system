@@ -39,12 +39,20 @@ const invoiceApi = vi.hoisted(() => ({
 const dashboardApi = vi.hoisted(() => ({
   getOrganizationDashboard: vi.fn(),
 }));
+const superAdminApi = vi.hoisted(() => ({
+  getSuperAdminOverview: vi.fn(),
+  listOrganizations: vi.fn(),
+  getOrganization: vi.fn(),
+  updateOrganizationStatus: vi.fn(),
+  listOrganizationUsers: vi.fn(),
+}));
 vi.mock('./features/clients/client-api.js', () => clientApi);
 vi.mock('./features/projects/project-api.js', () => projectApi);
 vi.mock('./features/milestones/milestone-api.js', () => milestoneApi);
 vi.mock('./features/project-files/project-file-api.js', () => projectFileApi);
 vi.mock('./features/invoices/invoice-api.js', () => invoiceApi);
 vi.mock('./features/dashboard/dashboard-api.js', () => dashboardApi);
+vi.mock('./features/super-admin/super-admin-api.js', () => superAdminApi);
 import App from './App.jsx';
 
 const client = {
@@ -163,6 +171,28 @@ beforeEach(() => {
     files: { total: 0, active: 0, archived: 0 },
     invoices: { total: 0, draft: 0, sent: 0, paid: 0, void: 0 },
   });
+  Object.values(superAdminApi).forEach((mock) => mock.mockReset());
+  superAdminApi.getSuperAdminOverview.mockResolvedValue({
+    organizations: { total: 0, active: 0, suspended: 0 },
+    users: { total: 0, organizationAdmins: 0, clients: 0 },
+  });
+  superAdminApi.listOrganizations.mockResolvedValue({
+    organizations: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
+  superAdminApi.getOrganization.mockResolvedValue({
+    id: 'organization-id',
+    name: 'Acme',
+    slug: 'acme',
+    status: 'active',
+    createdAt: '2026-07-01T00:00:00.000Z',
+    updatedAt: '2026-07-01T00:00:00.000Z',
+    userCounts: { total: 0, organizationAdmins: 0, clients: 0 },
+  });
+  superAdminApi.listOrganizationUsers.mockResolvedValue({
+    users: [],
+    pagination: { page: 1, total: 0, totalPages: 0 },
+  });
 });
 
 describe('Organization Dashboard routing and navigation', () => {
@@ -176,7 +206,7 @@ describe('Organization Dashboard routing and navigation', () => {
     'redirects %s away from the tenant dashboard',
     async (role) => {
       renderRoute('/dashboard', role);
-      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Platform Overview';
       expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
       expect(dashboardApi.getOrganizationDashboard).not.toHaveBeenCalled();
     },
@@ -250,6 +280,52 @@ describe('Organization Dashboard routing and navigation', () => {
   });
 });
 
+describe('Super Admin routing and navigation', () => {
+  it.each([
+    ['/super-admin', 'Platform Overview'],
+    ['/super-admin/organizations', 'Organizations'],
+    ['/super-admin/organizations/organization-id', 'Acme'],
+  ])('allows Super Admin access to %s', async (path, heading) => {
+    renderRoute(path, USER_ROLE.SUPER_ADMIN);
+    expect(await screen.findByRole('heading', { level: 1, name: heading }))
+      .toBeInTheDocument();
+  });
+
+  it.each([USER_ROLE.ORGANIZATION_ADMIN, USER_ROLE.CLIENT])(
+    'redirects %s away from Super Admin routes',
+    async (role) => {
+      renderRoute('/super-admin/organizations', role);
+      const destination = role === USER_ROLE.ORGANIZATION_ADMIN ? 'Dashboard' : 'Client workspace';
+      expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
+      expect(superAdminApi.listOrganizations).not.toHaveBeenCalled();
+    },
+  );
+
+  it('redirects unauthenticated users away from Super Admin routes', async () => {
+    renderRoute('/super-admin/organizations/organization-id', null, 'unauthenticated');
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+    expect(superAdminApi.getOrganization).not.toHaveBeenCalled();
+  });
+
+  it('shows only platform navigation to Super Admin', () => {
+    renderRoute('/super-admin/organizations', USER_ROLE.SUPER_ADMIN);
+    const navigation = screen.getByRole('navigation', { name: 'Main navigation' });
+    expect(within(navigation).getByRole('link', { name: 'Platform Overview' }))
+      .toHaveAttribute('href', '/super-admin');
+    expect(within(navigation).getByRole('link', { name: 'Organizations' }))
+      .toHaveClass('nav-link-active');
+    expect(within(navigation).getByRole('button', { name: 'Log out' })).toBeInTheDocument();
+    expect(
+      within(navigation).queryByText(/Dashboard|Clients|Projects|Billing|Reports|Invoices|Files/),
+    ).not.toBeInTheDocument();
+  });
+
+  it('uses not-found for unknown Super Admin routes', async () => {
+    renderRoute('/super-admin/unknown', USER_ROLE.SUPER_ADMIN);
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
+});
+
 describe('application Project routes and navigation', () => {
   it.each([
     ['/projects', 'Projects'],
@@ -273,7 +349,7 @@ describe('application Project routes and navigation', () => {
     'redirects %s users away from tenant Project routes',
     async (role) => {
       renderRoute('/projects', role);
-      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Platform Overview';
       expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
     },
   );
@@ -313,7 +389,7 @@ describe('application Project routes and navigation', () => {
     'redirects %s users away from tenant Milestone routes',
     async (role) => {
       renderRoute('/projects/project-1/milestones/new', role);
-      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Platform Overview';
       expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
     },
   );
@@ -353,7 +429,7 @@ describe('application Project routes and navigation', () => {
     'redirects %s users away from tenant Project File routes',
     async (role) => {
       renderRoute('/projects/project-1/files/new', role);
-      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Platform Overview';
       expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
     },
   );
@@ -401,7 +477,7 @@ describe('application Project routes and navigation', () => {
     'redirects %s users away from tenant Invoice routes',
     async (role) => {
       renderRoute('/projects/project-1/invoices/new', role);
-      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Super Admin console';
+      const destination = role === USER_ROLE.CLIENT ? 'Client workspace' : 'Platform Overview';
       expect(await screen.findByRole('heading', { name: destination })).toBeInTheDocument();
     },
   );
@@ -450,7 +526,7 @@ describe('application Client routes', () => {
 
   it('redirects Super Admin users away from tenant Client routes', async () => {
     renderRoute('/admin/clients/new', USER_ROLE.SUPER_ADMIN);
-    expect(await screen.findByRole('heading', { name: 'Super Admin console' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Platform Overview' })).toBeInTheDocument();
   });
 
   it('redirects unauthenticated users to login', async () => {
@@ -463,7 +539,7 @@ describe('application Client routes', () => {
     ['/register', 'Create your workspace', 'unauthenticated', null],
     ['/admin', 'Organization Admin', 'authenticated', USER_ROLE.ORGANIZATION_ADMIN],
     ['/client', 'Client workspace', 'authenticated', USER_ROLE.CLIENT],
-    ['/super-admin', 'Super Admin console', 'authenticated', USER_ROLE.SUPER_ADMIN],
+    ['/super-admin', 'Platform Overview', 'authenticated', USER_ROLE.SUPER_ADMIN],
   ])('preserves the existing %s route', async (path, heading, status, role) => {
     renderRoute(path, role, status);
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();

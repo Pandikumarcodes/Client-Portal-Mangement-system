@@ -1,5 +1,11 @@
 # Frontend Agent Rules
 
+- Super Admin uses dedicated platform routes and must not see tenant navigation.
+- Do not expose tenant business records or persist platform records in browser storage.
+- Do not add Super Admin impersonation, user mutation, or Organization deletion.
+- Organization suspension is a status change, not deletion, and the UI must not claim immediate
+  revocation of stateless access tokens.
+
 - Keep access tokens in React memory only; never use localStorage, sessionStorage, IndexedDB, or
   application cookies for tokens.
 - Never log tokens, credentials, request bodies, or cookie contents.

@@ -16,6 +16,12 @@ export function AppNavigation() {
           <NavItem to="/projects">Projects</NavItem>
         </>
       )}
+      {user?.role === USER_ROLE.SUPER_ADMIN && (
+        <>
+          <NavItem to="/super-admin">Platform Overview</NavItem>
+          <NavItem to="/super-admin/organizations">Organizations</NavItem>
+        </>
+      )}
       <button type="button" className="nav-logout" onClick={logout}>Log out</button>
     </nav>
   );

@@ -112,7 +112,7 @@ const loadUserOrganization = async (user, findOrganizationById) => {
     throw new ApiError({
       statusCode: 403,
       code: 'ORGANIZATION_SUSPENDED',
-      message: 'This organization is suspended.',
+      message: 'The organization is suspended.',
     });
   }
 

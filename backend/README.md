@@ -3,6 +3,33 @@
 Backend foundation for a multi-tenant Client Management Portal. The project uses Node.js,
 JavaScript, and ES modules, with a modular-monolith architecture direction.
 
+## Minimal Super Admin oversight
+
+Super Admin is a platform role without tenant context. The following endpoints require a valid
+access token and `super_admin`; Organization Admin and Client roles receive `FORBIDDEN`:
+
+| Method  | Endpoint                                                   | Behavior                                             |
+| ------- | ---------------------------------------------------------- | ---------------------------------------------------- |
+| `GET`   | `/api/v1/super-admin/overview`                             | Organization and tenant-user counts                  |
+| `GET`   | `/api/v1/super-admin/organizations`                        | Paginated Organizations with optional status         |
+| `GET`   | `/api/v1/super-admin/organizations/:organizationId`        | Safe basic details and user counts                   |
+| `PATCH` | `/api/v1/super-admin/organizations/:organizationId/status` | Update only active/suspended status                  |
+| `GET`   | `/api/v1/super-admin/organizations/:organizationId/users`  | Paginated safe tenant users with role/status filters |
+
+The overview contains Organization total, active, and suspended counts plus total tenant users,
+Organization Admins, and Clients. Organization DTOs contain only ID, name, slug, status, and
+timestamps. User DTOs contain only basic identity, role/status, Organization ID, and timestamps.
+Super Admin users, password hashes, refresh-token data, and tenant business records are excluded.
+
+Missing Organizations return `ORGANIZATION_NOT_FOUND`. Suspended Organizations retain all data.
+Tenant-user login and refresh return HTTP 403 `ORGANIZATION_SUSPENDED` with the safe message
+`The organization is suspended.` Reactivation permits normal authentication again.
+
+Access tokens are stateless and expire after 15 minutes. Suspension does not revoke an already
+issued access token, which may remain usable until expiry; there is no session or revocation store.
+No impersonation, Organization/user deletion, tenant business-data access, subscriptions, or
+billing is provided by the Super Admin API.
+
 ## Prerequisites
 
 - A supported Node.js LTS release

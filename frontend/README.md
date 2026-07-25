@@ -3,6 +3,29 @@
 This frontend uses React, Vite, React Router, native `fetch`, and React Context. Install and run
 with `npm install`, `npm run dev`, `npm run build`, `npm run lint`, or `npm test`.
 
+## Minimal Super Admin oversight
+
+Authenticated Super Admin users use dedicated routes:
+
+- `/super-admin` for basic Organization and tenant-user counts
+- `/super-admin/organizations` for active/suspended filtering and 20-item pagination
+- `/super-admin/organizations/:organizationId` for safe basic metadata, user counts, status control,
+  and a read-only paginated Organization user list
+
+Super Admin navigation contains Platform Overview, Organizations, and Logout only. Tenant
+Dashboard, Clients, Projects, Milestones, Files, and Invoices are not shown. Organization Admin and
+Client roles cannot render these routes.
+
+Overview, list, and detail pages provide accessible loading, empty, error, retry, filter, and
+pagination states. Activate/Suspend actions send only the requested status and are not optimistic.
+Suspension is not deletion: the UI states that data is retained and that an existing stateless
+access token may remain valid until its short expiry.
+
+Platform records remain in component memory and are never written to localStorage or sessionStorage.
+The interface has no Organization creation/deletion, user creation/editing/deletion, password reset,
+impersonation, tenant business pages, billing, subscriptions, reports, charts, or advanced
+analytics.
+
 Set `VITE_API_BASE_URL` in `.env` (the example points to `http://localhost:5000/api/v1`). No secrets
 belong in frontend environment variables. The API client always sends `credentials: 'include'` so
 the HTTP-only refresh cookie participates in authentication.

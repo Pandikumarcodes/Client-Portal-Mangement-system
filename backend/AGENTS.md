@@ -26,6 +26,14 @@
   handling.
 - Routes must never access Mongoose models directly.
 - Super Admin users are platform-level and must not be tenant scoped.
+- Super Admin platform routes never reuse tenant authorization implicitly; Organization Admin and
+  Client roles cannot access them.
+- Super Admin Organization visibility must not expose tenant business records, password hashes, or
+  refresh-token data, and Organization user listings must exclude Super Admin accounts.
+- Organization suspension is a status change that does not delete data. Document stateless token
+  limitations accurately.
+- Do not add Super Admin impersonation, Organization deletion, user deletion, subscriptions, or
+  billing without an approved prompt.
 - Organization Admin and Client users must be tenant scoped through `tenantId`.
 - Authentication services must never store raw passwords; only password hashes may persist.
 - Password hashing must not be implemented through Mongoose hooks.
