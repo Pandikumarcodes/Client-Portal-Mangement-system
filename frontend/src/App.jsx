@@ -10,6 +10,9 @@ import { AdminHomePage } from './pages/admin-home-page.jsx';
 import { ClientHomePage } from './pages/client-home-page.jsx';
 import { SuperAdminHomePage } from './pages/super-admin-home-page.jsx';
 import { NotFoundPage } from './pages/not-found-page.jsx';
+import { ClientListPage } from './pages/client-list-page.jsx';
+import { ClientCreatePage } from './pages/client-create-page.jsx';
+import { ClientDetailPage } from './pages/client-detail-page.jsx';
 
 function PublicRoute() {
   const { status, user } = useAuth();
@@ -22,7 +25,12 @@ export default function App() {
     <Route path="/login" element={<PublicRoute />}><Route index element={<LoginPage />} /></Route>
     <Route path="/register" element={<PublicRoute />}><Route index element={<RegisterPage />} /></Route>
     <Route element={<ProtectedRoute />}>
-      <Route element={<RoleRoute allowedRoles={[USER_ROLE.ORGANIZATION_ADMIN]} />}><Route path="/admin" element={<AdminHomePage />} /></Route>
+      <Route element={<RoleRoute allowedRoles={[USER_ROLE.ORGANIZATION_ADMIN]} />}>
+        <Route path="/admin" element={<AdminHomePage />} />
+        <Route path="/admin/clients" element={<ClientListPage />} />
+        <Route path="/admin/clients/new" element={<ClientCreatePage />} />
+        <Route path="/admin/clients/:clientId" element={<ClientDetailPage />} />
+      </Route>
       <Route element={<RoleRoute allowedRoles={[USER_ROLE.CLIENT]} />}><Route path="/client" element={<ClientHomePage />} /></Route>
       <Route element={<RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]} />}><Route path="/super-admin" element={<SuperAdminHomePage />} /></Route>
     </Route>

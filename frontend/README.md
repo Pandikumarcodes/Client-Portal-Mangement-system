@@ -11,6 +11,13 @@ the HTTP-only refresh cookie participates in authentication.
 exposes the current user, organization, and role-aware route state. Protected routes use the
 `Authorization: Bearer <access-token>` contract. Browser JavaScript never reads the refresh cookie.
 
-Login and registration are intentional placeholder pages until Prompt 18. The current role homes,
-route guards, refresh bootstrap, and logout shell do not implement client, project, dashboard, or
-Super Admin management features.
+Organization Admin Client Management is available at `/admin/clients`, with creation at
+`/admin/clients/new` and view/edit at `/admin/clients/:clientId`. These routes are protected for
+Organization Admin users only. The interface supports listing and paginating profiles, filtering by
+active or inactive status, creating profiles, viewing details, editing details, and activating or
+deactivating a profile.
+
+Deactivation is not deletion: inactive Client profiles remain stored and can be reactivated. The
+backend enforces tenant ownership from the authenticated session, and the frontend never sends
+`tenantId`. Creating a Client profile does not create a portal User account. Client invitations,
+account linking, projects, files, invoices, and other business modules are deferred.

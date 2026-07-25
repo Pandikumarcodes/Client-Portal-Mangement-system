@@ -1,4 +1,5 @@
 import { useAuth } from "../features/auth/use-auth.js";
+import { Link } from "react-router";
 export function AdminHomePage() {
   const { user, organization, logout } = useAuth();
   return (
@@ -20,6 +21,9 @@ function Dashboard({ title, user, organization, logout }) {
           Welcome{user?.firstName ? `, ${user.firstName}` : ""}.{" "}
           {organization?.name ? `You are viewing ${organization.name}.` : ""}
         </p>
+        <Link className="primary-link" to="/admin/clients">
+          Manage clients
+        </Link>
         <button type="button" onClick={logout}>
           Log out
         </button>
