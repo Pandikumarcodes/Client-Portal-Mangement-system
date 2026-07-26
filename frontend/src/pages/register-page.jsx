@@ -122,7 +122,7 @@ export function RegisterPage() {
             onChange={(value) => update("organizationName", value)}
           />
           <Field
-            label="Organization URL"
+            label="organization Slug "
             name="organizationSlug"
             autoComplete="off"
             value={values.organizationSlug}
