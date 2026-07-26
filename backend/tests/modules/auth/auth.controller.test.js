@@ -29,6 +29,7 @@ const createResponse = () => {
   response.status = vi.fn(() => response);
   response.json = vi.fn(() => response);
   response.send = vi.fn(() => response);
+  response.setHeader = vi.fn(() => response);
   return response;
 };
 
@@ -64,10 +65,24 @@ describe('authentication controllers', () => {
     expect(response.status).toHaveBeenCalledWith(201);
     expect(response.json).toHaveBeenCalledWith({
       success: true,
-      data: { organization, user, accessToken: 'access-token' },
+      data: {
+        organization,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+        },
+        accessToken: 'access-token',
+      },
     });
     expect(response.json.mock.calls[0][0]).not.toHaveProperty('data.tokens');
     expect(response.json.mock.calls[0][0]).not.toHaveProperty('data.passwordHash');
+    expect(response.json.mock.calls[0][0].data.user).not.toHaveProperty('tenantId');
+    expect(response.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-store');
+    expect(response.setHeader).toHaveBeenCalledWith('Pragma', 'no-cache');
   });
 
   it('login uses validated input, sets the cookie, and returns HTTP 200', async () => {
@@ -83,6 +98,7 @@ describe('authentication controllers', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.json.mock.calls[0][0].data.accessToken).toBe('access-token');
     expect(response.json.mock.calls[0][0]).not.toHaveProperty('data.refreshToken');
+    expect(response.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-store');
   });
 
   it('returns organization null for Super Admin login', async () => {
@@ -107,6 +123,7 @@ describe('authentication controllers', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.json.mock.calls[0][0].data.accessToken).toBe('access-token');
     expect(response.json.mock.calls[0][0]).not.toHaveProperty('data.refreshToken');
+    expect(response.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-store');
   });
 
   it('rejects a missing refresh cookie and clears logout idempotently with HTTP 204', async () => {
@@ -125,6 +142,7 @@ describe('authentication controllers', () => {
     expect(dependencies.clearRefreshTokenCookie).toHaveBeenCalledWith(response);
     expect(response.status).toHaveBeenCalledWith(204);
     expect(response.json).not.toHaveBeenCalled();
+    expect(response.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-store');
   });
 
   it('allows service errors to propagate and never logs credentials', async () => {

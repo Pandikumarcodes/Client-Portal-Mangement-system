@@ -26,9 +26,23 @@ Tenant-user login and refresh return HTTP 403 `ORGANIZATION_SUSPENDED` with the 
 `The organization is suspended.` Reactivation permits normal authentication again.
 
 Access tokens are stateless and expire after 15 minutes. Suspension does not revoke an already
-issued access token, which may remain usable until expiry; there is no session or revocation store.
+issued token cryptographically, but composed tenant routes perform a current Organization-status
+lookup and reject it; there is no session or revocation store.
 No impersonation, Organization/user deletion, tenant business-data access, subscriptions, or
 billing is provided by the Super Admin API.
+
+## Security
+
+The implemented security architecture, tenant and role boundaries, authentication and suspension
+behavior, Project File controls, local-development rules, and limitations are documented in
+[docs/SECURITY.md](docs/SECURITY.md). The Prompt 30D decision is recorded in
+[ADR-030D](docs/decisions/ADR-030D-security-hardening-and-integration-testing.md), and the
+cross-repository coverage map is in
+[../docs/SECURITY-TEST-MATRIX.md](../docs/SECURITY-TEST-MATRIX.md).
+
+Authentication responses are non-cacheable. Tenant routes check the current Organization status on
+every request. Refresh tokens remain stateless: refresh replaces the cookie but cannot reject a
+copied earlier token, and logout cannot revoke one. Do not use real credentials in tracked files.
 
 ## Prerequisites
 

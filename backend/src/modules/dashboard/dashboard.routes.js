@@ -8,11 +8,12 @@ import { createDashboardController } from './dashboard.controller.js';
 export function createDashboardRouter(dependencies) {
   const router = Router();
   const controller = createDashboardController(dependencies);
+  const tenantContextMiddleware = dependencies?.tenantContextMiddleware ?? requireTenantContext;
   router.get(
     '/organization',
     authenticateRequest,
     requireRoles(USER_ROLE.ORGANIZATION_ADMIN),
-    requireTenantContext,
+    tenantContextMiddleware,
     asyncHandler(controller.getOrganization),
   );
   return router;

@@ -23,9 +23,11 @@ export async function findClientById({ tenantId, clientId }) {
 }
 
 export async function updateClientById({ tenantId, clientId, updates }) {
-  const safeUpdates = { ...updates };
-  delete safeUpdates.tenantId;
-  delete safeUpdates.userId;
+  const safeUpdates = {};
+  for (const field of ['firstName', 'lastName', 'email', 'companyName', 'status']) {
+    if (Object.hasOwn(updates, field)) safeUpdates[field] = updates[field];
+  }
+
   return Client.findOneAndUpdate({ _id: clientId, tenantId }, safeUpdates, {
     new: true,
     runValidators: true,

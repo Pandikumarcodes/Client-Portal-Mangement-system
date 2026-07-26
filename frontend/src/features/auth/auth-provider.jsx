@@ -66,7 +66,10 @@ export function AuthProvider({ children }) {
           setState({
             ...initialState,
             status: "unauthenticated",
-            bootstrapError: "We could not restore your session.",
+            bootstrapError:
+              error?.code === "ORGANIZATION_SUSPENDED"
+                ? "This organization is suspended."
+                : "We could not restore your session.",
           });
       });
     return () => {

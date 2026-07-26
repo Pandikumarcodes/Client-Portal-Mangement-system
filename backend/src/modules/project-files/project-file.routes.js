@@ -19,10 +19,11 @@ export function createProjectFileRouter(dependencies = {}) {
   const router = Router({ mergeParams: true });
   const controller = createProjectFileController(dependencies);
   const uploadMiddleware = dependencies.projectFileUploadMiddleware ?? projectFileUploadMiddleware;
+  const tenantContextMiddleware = dependencies.tenantContextMiddleware ?? requireTenantContext;
   const guards = [
     authenticateRequest,
     requireRoles(USER_ROLE.ORGANIZATION_ADMIN),
-    requireTenantContext,
+    tenantContextMiddleware,
   ];
 
   router.post(

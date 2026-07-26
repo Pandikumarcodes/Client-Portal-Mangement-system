@@ -60,4 +60,24 @@ describe("RegisterPage", () => {
       }),
     );
   });
+
+  it("prevents duplicate submissions while registration is pending", () => {
+    const register = vi.fn(() => new Promise(() => {}));
+    renderPage(register);
+    const values = {
+      "Organization name": "Acme",
+      "Organization URL": "acme",
+      "First name": "Ada",
+      "Last name": "Lovelace",
+      Email: "ada@example.com",
+      Password: "StrongPass1",
+    };
+    Object.entries(values).forEach(([label, value]) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } }),
+    );
+    const form = screen.getByRole("button", { name: "Create account" }).closest("form");
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(register).toHaveBeenCalledOnce();
+  });
 });

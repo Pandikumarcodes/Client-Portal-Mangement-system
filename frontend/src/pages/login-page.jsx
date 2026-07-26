@@ -22,13 +22,14 @@ function validate(values) {
 }
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, bootstrapError } = useAuth();
   const navigate = useNavigate();
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const errorRef = useRef(null);
+  const submittingRef = useRef(false);
 
   const update = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -36,12 +37,14 @@ export function LoginPage() {
   };
   const submit = async (event) => {
     event.preventDefault();
+    if (submittingRef.current) return;
     setServerError("");
     const localErrors = validate(values);
     if (Object.keys(localErrors).length) {
       setErrors(localErrors);
       return;
     }
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const session = await login({
@@ -55,6 +58,7 @@ export function LoginPage() {
       if (error?.code === "VALIDATION_ERROR" && Array.isArray(error.details))
         setErrors(detailsToFields(error.details, ["email", "password"]));
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -64,14 +68,14 @@ export function LoginPage() {
         <span className="eyebrow">Client Management Portal</span>
         <h1>Welcome back</h1>
         <p>Sign in to continue to your workspace.</p>
-        {serverError && (
+        {(serverError || bootstrapError) && (
           <div
             ref={errorRef}
             className="server-error"
             role="alert"
             tabIndex="-1"
           >
-            {serverError}
+            {serverError || bootstrapError}
           </div>
         )}
         <form onSubmit={submit} noValidate>

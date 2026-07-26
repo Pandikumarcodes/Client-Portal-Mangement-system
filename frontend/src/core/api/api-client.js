@@ -3,7 +3,10 @@ import { ApiClientError } from './api-error.js';
 
 export async function apiRequest(path, options = {}) {
   const { method = 'GET', body, accessToken, signal, responseType = 'json' } = options;
-  const url = /^https?:\/\//i.test(path) ? path : `${frontendEnv.apiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
+    throw new TypeError('API request paths must be relative to the configured API origin.');
+  }
+  const url = `${frontendEnv.apiBaseUrl}${path}`;
   const headers = {};
   const request = { method, credentials: 'include', headers, signal };
   if (body !== undefined) {

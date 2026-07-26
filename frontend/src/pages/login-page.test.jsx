@@ -61,6 +61,21 @@ describe("LoginPage", () => {
     expect(screen.queryByText("secret")).not.toBeInTheDocument();
   });
 
+  it("prevents duplicate submissions while login is pending", () => {
+    const login = vi.fn(() => new Promise(() => {}));
+    renderPage(login);
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "PassWord1" },
+    });
+    const form = screen.getByRole("button", { name: "Sign in" }).closest("form");
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(login).toHaveBeenCalledOnce();
+  });
+
   it.each([
     ["organization_admin", "/dashboard", "Organization Dashboard destination"],
     ["client", "/client", "Client destination"],

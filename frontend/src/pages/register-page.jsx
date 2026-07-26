@@ -60,18 +60,21 @@ export function RegisterPage() {
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const errorRef = useRef(null);
+  const submittingRef = useRef(false);
   const update = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
   };
   const submit = async (event) => {
     event.preventDefault();
+    if (submittingRef.current) return;
     setServerError("");
     const localErrors = validate(values);
     if (Object.keys(localErrors).length) {
       setErrors(localErrors);
       return;
     }
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const session = await register({
@@ -89,6 +92,7 @@ export function RegisterPage() {
       if (error?.code === "VALIDATION_ERROR" && Array.isArray(error.details))
         setErrors(detailsToFields(error.details));
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };

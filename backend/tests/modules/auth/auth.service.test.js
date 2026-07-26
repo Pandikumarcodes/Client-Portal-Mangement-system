@@ -110,7 +110,6 @@ describe('authentication services', () => {
       },
       user: {
         id: tenantUser._id,
-        tenantId: tenantUser.tenantId,
         firstName: tenantUser.firstName,
         lastName: tenantUser.lastName,
         email: tenantUser.email,
@@ -124,6 +123,7 @@ describe('authentication services', () => {
     expect(Object.isFrozen(result.user)).toBe(true);
     expect(Object.isFrozen(result.tokens)).toBe(true);
     expect(result).not.toHaveProperty('passwordHash');
+    expect(result.user).not.toHaveProperty('tenantId');
     expect(mocks.createAccessToken).toHaveBeenCalledWith({
       userId: tenantUser._id,
       role: tenantUser.role,

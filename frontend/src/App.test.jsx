@@ -278,6 +278,30 @@ describe('Organization Dashboard routing and navigation', () => {
       'restored-memory-token',
     );
   });
+
+  it('shows a safe suspended-Organization message when restoration is rejected', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: vi.fn().mockResolvedValue({
+        success: false,
+        error: {
+          code: 'ORGANIZATION_SUSPENDED',
+          message: '<img src=x onerror=alert(1)> private tenant data',
+        },
+      }),
+    });
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <AuthProvider><App /></AuthProvider>
+      </MemoryRouter>,
+    );
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('This organization is suspended.');
+    expect(alert).not.toHaveTextContent(/img|private tenant data/i);
+    expect(alert.querySelector('img')).toBeNull();
+  });
 });
 
 describe('Super Admin routing and navigation', () => {

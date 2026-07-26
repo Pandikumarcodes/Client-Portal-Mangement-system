@@ -50,10 +50,6 @@ const toSafeUser = (user) => {
     status: user.status,
   };
 
-  if (user.tenantId !== undefined && user.tenantId !== null) {
-    safeUser.tenantId = String(user.tenantId);
-  }
-
   return safeUser;
 };
 
@@ -124,8 +120,10 @@ const createAuthenticationResult = (user, organization, dependencies) => {
   const identity = {
     userId: safeUser.id,
     role: safeUser.role,
-    tenantId: safeUser.tenantId,
   };
+  if (user.tenantId !== undefined && user.tenantId !== null) {
+    identity.tenantId = String(user.tenantId);
+  }
 
   return freezeResult({
     organization: organization === null ? null : Object.freeze(toSafeOrganization(organization)),
@@ -168,7 +166,7 @@ export async function registerOrganizationAdmin(input, dependencies) {
   const identity = {
     userId: safeUser.id,
     role: safeUser.role,
-    tenantId: safeUser.tenantId,
+    tenantId: String(account.user.tenantId),
   };
 
   return freezeResult({

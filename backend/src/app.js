@@ -12,12 +12,13 @@ import { requestContextMiddleware } from './core/logging/request-context.js';
 import { requestIdMiddleware } from './core/logging/request-id.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { notFoundHandler } from './middlewares/not-found.js';
+import { createRequireActiveTenantContext } from './modules/auth/auth.authorization.js';
 import authRouter from './modules/auth/auth.routes.js';
-import clientRouter from './modules/clients/client.routes.js';
-import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
-import { invoiceRouter } from './modules/invoices/invoice.routes.js';
-import { projectFileRouter } from './modules/project-files/project-file.routes.js';
-import { projectRouter } from './modules/projects/project.routes.js';
+import { createClientRouter } from './modules/clients/client.routes.js';
+import { createDashboardRouter } from './modules/dashboard/dashboard.routes.js';
+import { createInvoiceRouter } from './modules/invoices/invoice.routes.js';
+import { createProjectFileRouter } from './modules/project-files/project-file.routes.js';
+import { createProjectRouter } from './modules/projects/project.routes.js';
 import { superAdminRouter } from './modules/super-admin/super-admin.routes.js';
 
 const httpLogger = createHttpLogger({
@@ -26,6 +27,7 @@ const httpLogger = createHttpLogger({
 
 export function createApp() {
   const app = express();
+  const tenantContextMiddleware = createRequireActiveTenantContext();
 
   app.disable('x-powered-by');
   app.use(requestIdMiddleware);
@@ -46,11 +48,14 @@ export function createApp() {
   app.use(cookieParser());
   app.use('/api/v1/health', healthRouter);
   app.use('/api/v1/auth', authRouter);
-  app.use('/api/v1/clients', clientRouter);
-  app.use('/api/v1/projects', projectRouter);
-  app.use('/api/v1/projects/:projectId/files', projectFileRouter);
-  app.use('/api/v1/projects/:projectId/invoices', invoiceRouter);
-  app.use('/api/v1/dashboard', dashboardRouter);
+  app.use('/api/v1/clients', createClientRouter({ tenantContextMiddleware }));
+  app.use('/api/v1/projects', createProjectRouter({ tenantContextMiddleware }));
+  app.use(
+    '/api/v1/projects/:projectId/files',
+    createProjectFileRouter({ tenantContextMiddleware }),
+  );
+  app.use('/api/v1/projects/:projectId/invoices', createInvoiceRouter({ tenantContextMiddleware }));
+  app.use('/api/v1/dashboard', createDashboardRouter({ tenantContextMiddleware }));
   app.use('/api/v1/super-admin', superAdminRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);

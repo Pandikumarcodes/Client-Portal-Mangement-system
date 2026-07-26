@@ -103,6 +103,8 @@ describe('authentication routes', () => {
     );
     expect(response.headers['set-cookie'][0]).toContain('HttpOnly');
     expect(response.headers['set-cookie'][0]).toContain('SameSite=Lax');
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.headers.pragma).toBe('no-cache');
     expect(response.headers['x-request-id']).toEqual(expect.any(String));
   });
 
@@ -129,6 +131,7 @@ describe('authentication routes', () => {
     expect(valid.body.data.accessToken).toBe('access-token');
     expect(valid.body).not.toHaveProperty('data.refreshToken');
     expect(valid.headers['set-cookie'][0]).toContain('client_portal_refresh_token=refresh-token');
+    expect(valid.headers['cache-control']).toBe('no-store');
     expect(invalid.status).toBe(400);
     expect(invalid.body.error.code).toBe('VALIDATION_ERROR');
   });
@@ -142,6 +145,7 @@ describe('authentication routes', () => {
     expect(response.body.data.accessToken).toBe('refreshed-access-token');
     expect(response.body).not.toHaveProperty('data.refreshToken');
     expect(response.headers['set-cookie'][0]).toContain('refreshed-refresh-token');
+    expect(response.headers['cache-control']).toBe('no-store');
     expect(response.headers['x-request-id']).toEqual(expect.any(String));
   });
 
@@ -154,6 +158,7 @@ describe('authentication routes', () => {
     expect(logout.status).toBe(204);
     expect(logout.text).toBe('');
     expect(logout.headers['set-cookie'][0]).toContain('client_portal_refresh_token=;');
+    expect(logout.headers['cache-control']).toBe('no-store');
   });
 
   it('returns the standard 404 response for unknown auth routes', async () => {

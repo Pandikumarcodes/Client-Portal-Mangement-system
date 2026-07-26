@@ -18,8 +18,8 @@ Client roles cannot render these routes.
 
 Overview, list, and detail pages provide accessible loading, empty, error, retry, filter, and
 pagination states. Activate/Suspend actions send only the requested status and are not optimistic.
-Suspension is not deletion: the UI states that data is retained and that an existing stateless
-access token may remain valid until its short expiry.
+Suspension is not deletion: data is retained. Access tokens remain stateless, while composed tenant
+backend routes check current Organization status and reject suspended tenants.
 
 Platform records remain in component memory and are never written to localStorage or sessionStorage.
 The interface has no Organization creation/deletion, user creation/editing/deletion, password reset,
@@ -29,6 +29,28 @@ analytics.
 Set `VITE_API_BASE_URL` in `.env` (the example points to `http://localhost:5000/api/v1`). No secrets
 belong in frontend environment variables. The API client always sends `credentials: 'include'` so
 the HTTP-only refresh cookie participates in authentication.
+
+## Frontend security behavior
+
+Access tokens exist only in `AuthProvider` memory. Refresh tokens stay in the backend-set HTTP-only
+cookie and cannot be read by JavaScript. Tokens, tenant records, File objects, Blobs, and object URLs
+are not stored in localStorage, sessionStorage, IndexedDB, or query strings. The API base is
+environment-driven, and API calls accept only relative paths so bearer tokens and credentials cannot
+be redirected to arbitrary origins.
+
+Protected and role routes plus role-aware navigation provide defense in depth; backend
+authentication, role authorization, live suspension, and tenant scoping remain authoritative.
+Server and user text renders through React escaping, and known errors map to fixed safe messages.
+Protected downloads use authenticated fetch, a sanitized filename, a temporary Blob URL, and
+immediate URL revocation.
+
+Known limitations: startup restoration uses the refresh cookie, but arbitrary protected requests are
+not automatically refreshed and retried after a 401; affected screens clear the session safely.
+Refresh-token replay/logout revocation is not implemented by the backend. The Milestone frontend is
+present, but no backend Milestone module exists in this repository, so that workflow is not
+end-to-end functional. See
+[the backend security guide](../backend/docs/SECURITY.md) and
+[security test matrix](../docs/SECURITY-TEST-MATRIX.md).
 
 `AuthProvider` bootstraps with `POST /auth/refresh`, keeps the access token in memory only, and
 exposes the current user, organization, and role-aware route state. Protected routes use the

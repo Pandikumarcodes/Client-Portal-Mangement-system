@@ -16,10 +16,11 @@ import {
 export function createProjectRouter(dependencies) {
   const router = Router();
   const controller = createProjectController(dependencies);
+  const tenantContextMiddleware = dependencies?.tenantContextMiddleware ?? requireTenantContext;
   const guards = [
     authenticateRequest,
     requireRoles(USER_ROLE.ORGANIZATION_ADMIN),
-    requireTenantContext,
+    tenantContextMiddleware,
   ];
 
   router.post(

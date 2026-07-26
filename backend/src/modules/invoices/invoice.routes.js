@@ -17,10 +17,11 @@ import {
 export function createInvoiceRouter(dependencies) {
   const router = Router({ mergeParams: true });
   const controller = createInvoiceController(dependencies);
+  const tenantContextMiddleware = dependencies?.tenantContextMiddleware ?? requireTenantContext;
   const guards = [
     authenticateRequest,
     requireRoles(USER_ROLE.ORGANIZATION_ADMIN),
-    requireTenantContext,
+    tenantContextMiddleware,
   ];
 
   router.post(
