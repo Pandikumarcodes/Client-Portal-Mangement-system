@@ -85,8 +85,10 @@ The Project API uses the same `VITE_API_BASE_URL` configuration and authenticate
 layer as the rest of the frontend. It never sends `tenantId`, and Project records are not stored in
 browser storage. Project deletion is unsupported; archiving is a status update.
 
-Organization Admin Project Milestones are integrated into `/projects/:projectId`. The Project
-detail screen lists and paginates Milestones 20 at a time, supports one status filter, and links to:
+Organization Admin Project Milestone frontend artifacts are integrated into
+`/projects/:projectId`. They are not an end-to-end feature because the backend routes do not exist;
+live requests receive the backend's not-found response. The Project detail screen attempts to list
+and paginate Milestones 20 at a time, supports one status filter, and links to:
 
 - `/projects/:projectId/milestones/new` — create a Milestone
 - `/projects/:projectId/milestones/:milestoneId` — view Milestone details
@@ -94,8 +96,8 @@ detail screen lists and paginates Milestones 20 at a time, supports one status f
 
 These routes require an authenticated Organization Admin and are not exposed to Client or Super
 Admin users. There is no top-level Milestones navigation item. Supported fields are title,
-optional description, optional due date, and—during editing—status. Status values are `pending`,
-`in_progress`, and `completed`; creation leaves status to the backend's `pending` default.
+optional description, optional due date, and—during editing—status. The frontend contract assumes
+`pending`, `in_progress`, and `completed`, but no backend default or persistence exists.
 
 Due dates use the native date input. A selected `YYYY-MM-DD` date is sent as UTC midnight, while an
 API ISO value is displayed using its validated calendar-date portion so it does not visibly shift

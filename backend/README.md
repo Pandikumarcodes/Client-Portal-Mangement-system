@@ -354,8 +354,9 @@ identities. Each Client requires an Organization `tenantId` and stores `firstNam
 `email`, optional `companyName`, `status`, and an optional `userId` for future portal-account linking.
 Email uniqueness is scoped to each Organization, so the same address may exist in different tenants.
 
-Client create, list, get, and update APIs are available to authenticated Organization Admin users.
-Invitations, account linking, frontend screens, and Client-user Invoice access are not implemented.
+Client create, list, get, and update APIs are available to authenticated Organization Admin users,
+with corresponding frontend screens. Invitations, account linking, and Client-user Invoice access
+are not implemented.
 Client queries use `request.auth.tenantId`; tenant ownership never comes from request body or query
 input.
 
@@ -388,8 +389,9 @@ archiving uses the normal status update and archived Projects remain stored. Pro
 unique.
 
 Safe Project-route errors include `PROJECT_NOT_FOUND`, `CLIENT_NOT_FOUND`, `VALIDATION_ERROR`,
-`AUTHENTICATION_REQUIRED`, and `FORBIDDEN`. Project frontend screens, Client portal Project access,
-milestones, dates, budgets, progress, comments, and activity feeds are not implemented.
+`AUTHENTICATION_REQUIRED`, and `FORBIDDEN`. Project frontend screens are implemented. Client portal
+Project access, backend Milestones, budgets, progress, comments, and activity feeds are not
+implemented.
 
 ## Project Files
 
@@ -563,10 +565,11 @@ tenant-scoped Project File delivery, and basic tenant-scoped Project Invoice rec
 is the tenant root, and tenant-owned Client, Project, Project File, and Invoice operations use
 verified authentication context.
 
-Organization onboarding beyond registration, audit logging, persistent refresh sessions, Project
-and Invoice frontend screens, Client portal Project/File/Invoice access, milestones, and the other
-deferred Project features described above remain unimplemented. Never commit `.env`; it can contain
-database credentials, JWT secrets, and other environment-specific configuration.
+Organization onboarding beyond registration, audit logging, persistent refresh sessions, Client
+portal Project/File/Invoice access, backend Milestones, and the other deferred Project features
+described above remain unimplemented. Project and Invoice frontend screens are implemented. Never
+commit `.env`; it can contain database credentials, JWT secrets, and other environment-specific
+configuration.
 
 ## Organization dashboard
 
@@ -587,5 +590,5 @@ Missing or invalid authentication returns the existing safe `AUTHENTICATION_REQU
 Client and Super Admin roles receive the existing safe `FORBIDDEN` error. Only GET is registered;
 POST, PATCH, PUT, and DELETE dashboard operations are unavailable. Client dashboard support is
 deferred because the current optional Client `userId` is reserved for a future account-linking
-workflow and does not yet establish a secure authenticated ownership mapping. Super Admin dashboard
-support is deferred to Prompt 30C. No dashboard frontend is implemented in Prompt 30A.
+workflow and does not yet establish a secure authenticated ownership mapping. The Organization
+Admin dashboard frontend and separate minimal Super Admin platform overview are implemented.

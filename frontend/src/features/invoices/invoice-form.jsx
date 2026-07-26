@@ -80,11 +80,6 @@ export function InvoiceForm({
   const submittingRef = useRef(false);
 
   useEffect(() => {
-    setValues({ ...emptyValues, ...initialValues });
-    setErrors({});
-  }, [initialValues]);
-
-  useEffect(() => {
     if (!isSubmitting) submittingRef.current = false;
   }, [isSubmitting]);
 
