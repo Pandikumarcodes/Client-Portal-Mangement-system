@@ -60,16 +60,19 @@ export function AuthProvider({ children }) {
       })
       .catch((error) => {
         if (!active) return;
-        if (error?.status === 401 && error?.code === "AUTHENTICATION_REQUIRED")
+        if (error?.code === "ORGANIZATION_SUSPENDED")
+          setState({
+            ...initialState,
+            status: "unauthenticated",
+            bootstrapError: "This organization is suspended.",
+          });
+        else if (error?.status === 401)
           clearSession();
         else
           setState({
             ...initialState,
             status: "unauthenticated",
-            bootstrapError:
-              error?.code === "ORGANIZATION_SUSPENDED"
-                ? "This organization is suspended."
-                : "We could not restore your session.",
+            bootstrapError: "We could not restore your session.",
           });
       });
     return () => {
